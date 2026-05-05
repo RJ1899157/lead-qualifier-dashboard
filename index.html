@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Qualifier Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; display: flex; height: 100vh; }
+  
+  /* Sidebar */
+  .sidebar { width: 240px; background: #1e293b; padding: 24px 16px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #334155; }
+  .logo { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 24px; padding: 0 8px; }
+  .logo span { color: #6366f1; }
+  .nav-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #94a3b8; transition: all 0.2s; }
+  .nav-item:hover { background: #334155; color: #f8fafc; }
+  .nav-item.active { background: #6366f1; color: #fff; }
+  .filter-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 12px 8px; }
+  .filter-btn { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #94a3b8; transition: all 0.2s; }
+  .filter-btn:hover { background: #334155; color: #f8fafc; }
+  .filter-btn.active { background: #334155; color: #f8fafc; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-hot { background: #ef4444; }
+  .dot-warm { background: #f59e0b; }
+  .dot-cold { background: #3b82f6; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { padding: 20px 28px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+  .topbar h1 { font-size: 20px; font-weight: 600; }
+  .stats { display: flex; gap: 12px; }
+  .stat { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 8px 16px; text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: #64748b; }
+  .hot-num { color: #ef4444; }
+  .warm-num { color: #f59e0b; }
+  .cold-num { color: #3b82f6; }
+
+  /* Content */
+  .content { display: flex; flex: 1; overflow: hidden; }
+  .table-panel { flex: 1; overflow-y: auto; padding: 20px 28px; }
+  .table { width: 100%; border-collapse: collapse; }
+  .table th { text-align: left; font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 14px; border-bottom: 1px solid #334155; }
+  .table td { padding: 14px; border-bottom: 1px solid #1e293b; font-size: 13px; vertical-align: middle; }
+  .table tr { cursor: pointer; transition: background 0.15s; }
+  .table tr:hover { background: #1e293b; }
+  .table tr.selected { background: #1e3a5f; }
+  .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-hot { background: #450a0a; color: #f87171; }
+  .badge-warm { background: #451a03; color: #fbbf24; }
+  .badge-cold { background: #0c1a3d; color: #60a5fa; }
+  .score-bar { width: 80px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; }
+
+  /* Detail panel */
+  .detail-panel { width: 320px; background: #1e293b; border-left: 1px solid #334155; padding: 24px; overflow-y: auto; display: none; }
+  .detail-panel.open { display: block; }
+  .detail-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .detail-role { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .detail-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #334155; }
+  .detail-row-label { color: #64748b; }
+  .detail-action { background: #6366f1; color: #fff; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; margin-top: 8px; }
+  .detail-reason { background: #0f172a; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: #94a3b8; margin-top: 8px; }
+  .loading { text-align: center; padding: 60px; color: #475569; font-size: 15px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #334155; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">Lead<span>AI</span></div>
+  <div class="nav-item active">📊 Dashboard</div>
+  <div class="filter-title">Filter by Status</div>
+  <div class="filter-btn active" onclick="filterLeads('all')"><div class="dot" style="background:#6366f1"></div> All Leads</div>
+  <div class="filter-btn" onclick="filterLeads('Hot')"><div class="dot dot-hot"></div> Hot</div>
+  <div class="filter-btn" onclick="filterLeads('Warm')"><div class="dot dot-warm"></div> Warm</div>
+  <div class="filter-btn" onclick="filterLeads('Cold')"><div class="dot dot-cold"></div> Cold</div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Lead Qualifier Dashboard</h1>
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="total">-</div><div class="stat-label">Total</div></div>
+      <div class="stat"><div class="stat-num hot-num" id="hot-count">-</div><div class="stat-label">Hot</div></div>
+      <div class="stat"><div class="stat-num warm-num" id="warm-count">-</div><div class="stat-label">Warm</div></div>
+      <div class="stat"><div class="stat-num cold-num" id="cold-count">-</div><div class="stat-label">Cold</div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="table-panel">
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        AI is qualifying leads...
+      </div>
+      <table class="table" id="leads-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Company</th>
+            <th>Industry</th>
+            <th>Country</th>
+            <th>Score</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="leads-body"></tbody>
+      </table>
+    </div>
+    <div class="detail-panel" id="detail-panel"></div>
+  </div>
+</div>
+
+<script>
+let allLeads = [];
+let currentFilter = 'all';
+
+async function loadLeads() {
+  const res = await fetch('/api/leads');
+  allLeads = await res.json();
+  renderTable(allLeads);
+  updateStats(allLeads);
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('leads-table').style.display = 'table';
+}
+
+function updateStats(leads) {
+  document.getElementById('total').textContent = leads.length;
+  document.getElementById('hot-count').textContent = leads.filter(l => l.status === 'Hot').length;
+  document.getElementById('warm-count').textContent = leads.filter(l => l.status === 'Warm').length;
+  document.getElementById('cold-count').textContent = leads.filter(l => l.status === 'Cold').length;
+}
+
+function getScoreColor(score) {
+  if (score >= 80) return '#ef4444';
+  if (score >= 50) return '#f59e0b';
+  return '#3b82f6';
+}
+
+function renderTable(leads) {
+  const tbody = document.getElementById('leads-body');
+  tbody.innerHTML = leads.map((lead, i) => `
+    <tr onclick="showDetail(${allLeads.indexOf(lead)})" id="row-${allLeads.indexOf(lead)}">
+      <td><strong>${lead.name}</strong></td>
+      <td>${lead.role}</td>
+      <td>${lead.company}</td>
+      <td>${lead.industry}</td>
+      <td>${lead.country}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="score-bar"><div class="score-fill" style="width:${lead.score}%;background:${getScoreColor(parseInt(lead.score))}"></div></div>
+          <span style="font-size:12px;color:#94a3b8">${lead.score}</span>
+        </div>
+      </td>
+      <td><span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${lead.status || 'Unknown'}</span></td>
+    </tr>
+  `).join('');
+}
+
+function filterLeads(status) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.filter-btn').classList.add('active');
+  const filtered = status === 'all' ? allLeads : allLeads.filter(l => l.status === status);
+  renderTable(filtered);
+  updateStats(filtered);
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+function showDetail(index) {
+  const lead = allLeads[index];
+  document.querySelectorAll('.table tr').forEach(r => r.classList.remove('selected'));
+  document.getElementById(`row-${index}`).classList.add('selected');
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+  panel.innerHTML = `
+    <div class="detail-name">${lead.name}</div>
+    <div class="detail-role">${lead.role} at ${lead.company}</div>
+    <span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}" style="margin-bottom:20px;display:inline-block">${lead.status}</span>
+    <div class="detail-section">
+      <div class="detail-section-title">Lead Info</div>
+      <div class="detail-row"><span class="detail-row-label">Industry</span><span>${lead.industry}</span></div>
+      <div class="detail-row"><span class="detail-row-label">Country</span><span>${lead.country}</span></div>
+      <div class="detail-row"><span class="detail-row-label">Company Size</span><span>${lead.company_size} employees</span></div>
+      <div class="detail-row"><span class="detail-row-label">Score</span><span>${lead.score}/100</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Engagement</div>
+      <div class="detail-reason">${lead.engagement}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">AI Analysis</div>
+      <div class="detail-reason">${lead.reason || 'No reason provided'}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Recommended Action</div>
+      <div class="detail-action">${lead.action || 'No action provided'}</div>
+    </div>
+  `;
+}
+
+loadLeads();
+</script>
+</body>
+</html>
