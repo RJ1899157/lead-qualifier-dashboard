@@ -8,15 +8,13 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; display: flex; height: 100vh; }
   
-  /* Sidebar */
   .sidebar { width: 240px; background: #1e293b; padding: 24px 16px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #334155; }
   .logo { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 24px; padding: 0 8px; }
   .logo span { color: #6366f1; }
-  .nav-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #94a3b8; transition: all 0.2s; }
-  .nav-item:hover { background: #334155; color: #f8fafc; }
+  .nav-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #94a3b8; }
   .nav-item.active { background: #6366f1; color: #fff; }
   .filter-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 12px 8px; }
-  .filter-btn { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #94a3b8; transition: all 0.2s; }
+  .filter-btn { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #94a3b8; }
   .filter-btn:hover { background: #334155; color: #f8fafc; }
   .filter-btn.active { background: #334155; color: #f8fafc; }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -24,10 +22,10 @@
   .dot-warm { background: #f59e0b; }
   .dot-cold { background: #3b82f6; }
 
-  /* Main */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   .topbar { padding: 20px 28px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
   .topbar h1 { font-size: 20px; font-weight: 600; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
   .stats { display: flex; gap: 12px; }
   .stat { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 8px 16px; text-align: center; }
   .stat-num { font-size: 20px; font-weight: 700; }
@@ -35,8 +33,9 @@
   .hot-num { color: #ef4444; }
   .warm-num { color: #f59e0b; }
   .cold-num { color: #3b82f6; }
+  .add-btn { background: #6366f1; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .add-btn:hover { background: #4f46e5; }
 
-  /* Content */
   .content { display: flex; flex: 1; overflow: hidden; }
   .table-panel { flex: 1; overflow-y: auto; padding: 20px 28px; }
   .table { width: 100%; border-collapse: collapse; }
@@ -51,8 +50,9 @@
   .badge-cold { background: #0c1a3d; color: #60a5fa; }
   .score-bar { width: 80px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
   .score-fill { height: 100%; border-radius: 3px; }
+  .delete-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .delete-btn:hover { background: #ef4444; color: #fff; }
 
-  /* Detail panel */
   .detail-panel { width: 320px; background: #1e293b; border-left: 1px solid #334155; padding: 24px; overflow-y: auto; display: none; }
   .detail-panel.open { display: block; }
   .detail-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
@@ -63,8 +63,27 @@
   .detail-row-label { color: #64748b; }
   .detail-action { background: #6366f1; color: #fff; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; margin-top: 8px; }
   .detail-reason { background: #0f172a; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: #94a3b8; margin-top: 8px; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 28px; width: 480px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input, .form-group select, .form-group textarea { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 12px; color: #e2e8f0; font-size: 13px; font-family: inherit; }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #6366f1; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .cancel-btn { background: transparent; border: 1px solid #334155; color: #94a3b8; padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  .submit-btn { background: #6366f1; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
   .loading { text-align: center; padding: 60px; color: #475569; font-size: 15px; }
   .spinner { width: 32px; height: 32px; border: 3px solid #334155; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  .qualifying-msg { text-align: center; padding: 20px; color: #6366f1; font-size: 13px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -74,20 +93,23 @@
   <div class="logo">Lead<span>AI</span></div>
   <div class="nav-item active">📊 Dashboard</div>
   <div class="filter-title">Filter by Status</div>
-  <div class="filter-btn active" onclick="filterLeads('all')"><div class="dot" style="background:#6366f1"></div> All Leads</div>
-  <div class="filter-btn" onclick="filterLeads('Hot')"><div class="dot dot-hot"></div> Hot</div>
-  <div class="filter-btn" onclick="filterLeads('Warm')"><div class="dot dot-warm"></div> Warm</div>
-  <div class="filter-btn" onclick="filterLeads('Cold')"><div class="dot dot-cold"></div> Cold</div>
+  <div class="filter-btn active" onclick="filterLeads('all', this)"><div class="dot" style="background:#6366f1"></div> All Leads</div>
+  <div class="filter-btn" onclick="filterLeads('Hot', this)"><div class="dot dot-hot"></div> Hot</div>
+  <div class="filter-btn" onclick="filterLeads('Warm', this)"><div class="dot dot-warm"></div> Warm</div>
+  <div class="filter-btn" onclick="filterLeads('Cold', this)"><div class="dot dot-cold"></div> Cold</div>
 </div>
 
 <div class="main">
   <div class="topbar">
     <h1>Lead Qualifier Dashboard</h1>
-    <div class="stats">
-      <div class="stat"><div class="stat-num" id="total">-</div><div class="stat-label">Total</div></div>
-      <div class="stat"><div class="stat-num hot-num" id="hot-count">-</div><div class="stat-label">Hot</div></div>
-      <div class="stat"><div class="stat-num warm-num" id="warm-count">-</div><div class="stat-label">Warm</div></div>
-      <div class="stat"><div class="stat-num cold-num" id="cold-count">-</div><div class="stat-label">Cold</div></div>
+    <div class="topbar-right">
+      <div class="stats">
+        <div class="stat"><div class="stat-num" id="total">-</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-num hot-num" id="hot-count">-</div><div class="stat-label">Hot</div></div>
+        <div class="stat"><div class="stat-num warm-num" id="warm-count">-</div><div class="stat-label">Warm</div></div>
+        <div class="stat"><div class="stat-num cold-num" id="cold-count">-</div><div class="stat-label">Cold</div></div>
+      </div>
+      <button class="add-btn" onclick="openModal()">+ Add Lead</button>
     </div>
   </div>
 
@@ -107,12 +129,66 @@
             <th>Country</th>
             <th>Score</th>
             <th>Status</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody id="leads-body"></tbody>
       </table>
     </div>
     <div class="detail-panel" id="detail-panel"></div>
+  </div>
+</div>
+
+<!-- Add Lead Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>Add New Lead</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="f-name" placeholder="John Smith">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <input type="text" id="f-role" placeholder="CEO">
+      </div>
+      <div class="form-group">
+        <label>Company</label>
+        <input type="text" id="f-company" placeholder="TechCorp">
+      </div>
+      <div class="form-group">
+        <label>Industry</label>
+        <select id="f-industry">
+          <option>EdTech</option>
+          <option>Pharma</option>
+          <option>Retail</option>
+          <option>Real Estate</option>
+          <option>Media</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Country</label>
+        <select id="f-country">
+          <option>USA</option>
+          <option>Canada</option>
+          <option>Singapore</option>
+          <option>UAE</option>
+          <option>India</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Company Size</label>
+        <input type="number" id="f-size" placeholder="250">
+      </div>
+      <div class="form-group full">
+        <label>Engagement</label>
+        <textarea id="f-engagement" placeholder="Opened email 3 times, replied once"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      <button class="submit-btn" id="submit-btn" onclick="submitLead()">Qualify Lead</button>
+    </div>
   </div>
 </div>
 
@@ -144,8 +220,10 @@ function getScoreColor(score) {
 
 function renderTable(leads) {
   const tbody = document.getElementById('leads-body');
-  tbody.innerHTML = leads.map((lead, i) => `
-    <tr onclick="showDetail(${allLeads.indexOf(lead)})" id="row-${allLeads.indexOf(lead)}">
+  tbody.innerHTML = leads.map((lead) => {
+    const realIndex = allLeads.indexOf(lead);
+    return `
+    <tr id="row-${realIndex}" onclick="showDetail(${realIndex})">
       <td><strong>${lead.name}</strong></td>
       <td>${lead.role}</td>
       <td>${lead.company}</td>
@@ -158,14 +236,15 @@ function renderTable(leads) {
         </div>
       </td>
       <td><span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${lead.status || 'Unknown'}</span></td>
+      <td><button class="delete-btn" onclick="deleteLead(event, ${realIndex})">Delete</button></td>
     </tr>
-  `).join('');
+  `}).join('');
 }
 
-function filterLeads(status) {
+function filterLeads(status, el) {
   currentFilter = status;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  event.target.closest('.filter-btn').classList.add('active');
+  el.classList.add('active');
   const filtered = status === 'all' ? allLeads : allLeads.filter(l => l.status === status);
   renderTable(filtered);
   updateStats(filtered);
@@ -174,8 +253,10 @@ function filterLeads(status) {
 
 function showDetail(index) {
   const lead = allLeads[index];
+  if (!lead) return;
   document.querySelectorAll('.table tr').forEach(r => r.classList.remove('selected'));
-  document.getElementById(`row-${index}`).classList.add('selected');
+  const row = document.getElementById(`row-${index}`);
+  if (row) row.classList.add('selected');
   const panel = document.getElementById('detail-panel');
   panel.classList.add('open');
   panel.innerHTML = `
@@ -202,6 +283,75 @@ function showDetail(index) {
       <div class="detail-action">${lead.action || 'No action provided'}</div>
     </div>
   `;
+}
+
+async function deleteLead(event, index) {
+  event.stopPropagation();
+  if (!confirm(`Delete ${allLeads[index].name}?`)) return;
+  const res = await fetch(`/api/leads/${index}`, { method: 'DELETE' });
+  if (res.ok) {
+    allLeads.splice(index, 1);
+    const filtered = currentFilter === 'all' ? allLeads : allLeads.filter(l => l.status === currentFilter);
+    renderTable(filtered);
+    updateStats(filtered);
+    document.getElementById('detail-panel').classList.remove('open');
+  }
+}
+
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+async function submitLead() {
+  const name = document.getElementById('f-name').value.trim();
+  const role = document.getElementById('f-role').value.trim();
+  const company = document.getElementById('f-company').value.trim();
+  const size = document.getElementById('f-size').value.trim();
+  const engagement = document.getElementById('f-engagement').value.trim();
+
+  if (!name || !role || !company || !size || !engagement) {
+    alert('Please fill in all fields');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Qualifying...';
+
+  const lead = {
+    name,
+    role,
+    company,
+    industry: document.getElementById('f-industry').value,
+    country: document.getElementById('f-country').value,
+    company_size: parseInt(size),
+    engagement
+  };
+
+  const res = await fetch('/api/leads', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lead)
+  });
+
+  const qualified = await res.json();
+  allLeads.push(qualified);
+  const filtered = currentFilter === 'all' ? allLeads : allLeads.filter(l => l.status === currentFilter);
+  renderTable(filtered);
+  updateStats(filtered);
+  closeModal();
+  btn.disabled = false;
+  btn.textContent = 'Qualify Lead';
+
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-role').value = '';
+  document.getElementById('f-company').value = '';
+  document.getElementById('f-size').value = '';
+  document.getElementById('f-engagement').value = '';
 }
 
 loadLeads();
