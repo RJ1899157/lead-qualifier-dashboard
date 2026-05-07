@@ -15,6 +15,8 @@ Team 4: Lead Qualification + Sales Assistant.
 - Filter leads by status in real time
 - Detail panel with AI analysis and recommended action per lead
 - Live stats — total, hot, warm, cold lead counts
+- Add new leads via form — AI qualifies them instantly
+- Delete leads directly from the dashboard
 
 ## Tech Stack
 Python, FastAPI, LangChain, Groq (Llama 3.3), HTML, CSS, JavaScript
