@@ -1,12 +1,15 @@
-from fastapi import FastAPI
+# main.py
+from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from lead_qualifier import qualify_all_leads, score_lead
+from lead_qualifier import qualify_all_leads, qualify_lead
+from data_loader import load_csv
 import os
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+import pandas as pd
 
 load_dotenv()
 
@@ -43,9 +46,44 @@ def add_lead(lead: NewLead):
     global leads_db
     new_lead = lead.dict()
     print(f"Qualifying new lead: {new_lead['name']}...")
-    qualified = score_lead(new_lead)
+    qualified = qualify_lead(new_lead)
     leads_db.append(qualified)
     return qualified
+
+@app.post("/api/leads/upload-csv")
+async def upload_csv(file: UploadFile = File(...)):
+    global leads_db
+    temp_path = f"temp_{file.filename}"
+
+    with open(temp_path, "wb") as f:
+        f.write(await file.read())
+
+    records = load_csv(temp_path)
+    added_count = 0
+    replaced_count = 0
+
+    for record in records:
+        qualified = qualify_lead(record)
+
+        duplicate_index = next(
+            (i for i, existing in enumerate(leads_db)
+             if existing["name"] == qualified["name"]
+             and existing["company"] == qualified["company"]
+            ),
+            None
+        )
+        if duplicate_index is not None:
+            leads_db[duplicate_index] = qualified
+            replaced_count += 1
+        else:
+            leads_db.append(qualified)
+            added_count += 1
+
+    return {
+        "message": "Upload complete",
+        "added": added_count,
+        "replaced": replaced_count
+    }
 
 @app.delete("/api/leads/{index}")
 def delete_lead(index: int):
