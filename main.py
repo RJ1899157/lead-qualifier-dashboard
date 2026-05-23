@@ -2,7 +2,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from lead_qualifier import qualify_all_leads, qualify_lead
+from lead_qualifier import qualify_lead
 from data_loader import load_csv
 import os
 from dotenv import load_dotenv
@@ -37,8 +37,6 @@ class MeetingSummary(BaseModel):
 @app.get("/api/leads")
 def get_leads():
     global leads_db
-    if not leads_db:
-        leads_db = qualify_all_leads()
     return leads_db
 
 @app.post("/api/leads")
@@ -198,3 +196,11 @@ def dashboard():
 def sales_assistant_page():
     with open("sales_assistant.html", "r") as f:
         return f.read()
+
+@app.get("/sales-assistant/", response_class=HTMLResponse)
+def sales_assistant_page_slash():
+    return sales_assistant_page()
+
+@app.get("/sales_assistant.html", response_class=HTMLResponse)
+def sales_assistant_file():
+    return sales_assistant_page()

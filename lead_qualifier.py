@@ -13,7 +13,6 @@ llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
-SAMPLE_LEADS = []
 
 def generate_reason_and_action(lead):
     prompt = f"""
@@ -81,4 +80,4 @@ def qualify_lead(lead):
     return score_lead_deterministic(lead)
 
 def qualify_all_leads():
-    return [qualify_lead(lead) for lead in SAMPLE_LEADS]
+    return []

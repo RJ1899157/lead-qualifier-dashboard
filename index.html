@@ -93,7 +93,8 @@
   .qualifying-msg { text-align: center; padding: 20px; color: #6366f1; font-size: 13px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   /* Chatbot */
-  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 52px; height: 52px; background: #158d93; border-radius: 50%; border: none; cursor: pointer; font-size: 22px; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; }
+  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 52px; height: 52px; background: #158d93; border-radius: 50%; border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; display: inline-flex; align-items: center; justify-content: center; }
+  .icon-button img, .icon-button svg { width: 20px; height: 20px; display: block; }
   .chat-window { position: fixed; bottom: 92px; right: 28px; width: 380px; height: 500px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; display: flex; flex-direction: column; z-index: 200; box-shadow: 0 8px 40px rgba(0,0,0,0.4); display: none; }
   .chat-window.open { display: flex; }
   .chat-header { padding: 16px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
@@ -126,6 +127,7 @@
 <div class="sidebar">
   <div class="logo">Lead<span>AI</span></div>
   <div class="nav-item active">Dashboard</div>
+  <a href="/sales-assistant" class="nav-item">Sales Assistant</a>
   <div class="filter-title">Filter by Status</div>
   <div class="filter-btn active" onclick="filterLeads('all', this)"><div class="dot" style="background:#6366f1"></div> All Leads</div>
   <div class="filter-btn" onclick="filterLeads('Hot', this)"><div class="dot dot-hot"></div> Hot</div>
@@ -342,7 +344,7 @@ function showDetail(index) {
       <div class="detail-section-title">Recommended Action</div>
       <div class="detail-action">${lead.action || 'No action provided'}</div>
     </div>
-    <a href="/sales-assistant?lead=${index}" style="display:block;margin-top:16px;background:#6366f1;color:#fff;padding:12px;border-radius:8px;font-size:13px;text-align:center;text-decoration:none;font-weight:500">🤖 Open Sales Assistant →</a>
+    <a href="/sales-assistant?lead=${index}" style="display:block;margin-top:16px;background:#6366f1;color:#fff;padding:12px;border-radius:8px;font-size:13px;text-align:center;text-decoration:none;font-weight:500">Open Sales Assistant</a>
   `;
 }
 
@@ -515,7 +517,12 @@ function showToast(message) {
 }
 </script>
 <!-- Chat Toggle Button -->
-<button class="chat-toggle" onclick="toggleChat()">AI</button>
+<button class="chat-toggle icon-button" onclick="toggleChat()" aria-label="Open chat">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <path d="M8 9h8M8 13h5" />
+  </svg>
+</button>
 
 <!-- Chat Window -->
 <div class="chat-window" id="chat-window">
@@ -543,7 +550,12 @@ function showToast(message) {
 
   <div class="chat-input-area">
     <input class="chat-input" id="chat-input" type="text" placeholder="Ask about your leads..." onkeydown="if(event.key==='Enter') sendChat()">
-    <button class="chat-send" onclick="sendChat()">&rarr;</button>
+    <button class="chat-send icon-button" onclick="sendChat()" aria-label="Send message">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+      </svg>
+    </button>
   </div>
 </div>
 <div id="toast" class="toast"></div>

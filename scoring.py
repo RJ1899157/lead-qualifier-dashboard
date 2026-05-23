@@ -53,9 +53,10 @@ def get_engagement_score(engagement):
 
 
 def classify_lead(score):
-    if score >= 70:
+    # Align status boundaries with frontend score coloring and reserve Hot for the top tier.
+    if score >= 80:
         return "Hot"
-    elif score >= 40:
+    elif score >= 50:
         return "Warm"
     return "Cold"
 

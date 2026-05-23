@@ -64,7 +64,8 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Chatbot */
-  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 52px; height: 52px; background: #6366f1; border-radius: 50%; border: none; cursor: pointer; font-size: 22px; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; }
+  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 52px; height: 52px; background: #6366f1; border-radius: 50%; border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; display: inline-flex; align-items: center; justify-content: center; }
+  .icon-button img, .icon-button svg { width: 20px; height: 20px; display: block; }
   .chat-window { position: fixed; bottom: 92px; right: 28px; width: 380px; height: 500px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; flex-direction: column; z-index: 200; box-shadow: 0 8px 40px rgba(0,0,0,0.4); display: none; }
   .chat-window.open { display: flex; }
   .chat-header { padding: 16px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
@@ -82,7 +83,7 @@
   .chat-input-area { padding: 12px; border-top: 1px solid #334155; display: flex; gap: 8px; }
   .chat-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 12.5px; font-family: inherit; }
   .chat-input:focus { outline: none; border-color: #6366f1; }
-  .chat-send { background: #6366f1; border: none; color: #fff; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .chat-send { background: #6366f1; border: none; color: #fff; width: 58px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 13px; }
   .chat-send:hover { background: #4f46e5; }
   .chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
   .suggestion-chip { background: #0f172a; border: 1px solid #334155; border-radius: 20px; padding: 5px 10px; font-size: 11px; color: #94a3b8; cursor: pointer; }
@@ -93,10 +94,9 @@
 
 <div class="sidebar">
   <div class="logo">Lead<span>AI</span></div>
-  <a href="/" class="nav-item">📊 Dashboard</a>
-  <a href="/sales-assistant" class="nav-item active">🤖 Sales Assistant</a>
+  <a href="/" class="nav-item">Dashboard</a>
+  <a href="/sales-assistant" class="nav-item active">Sales Assistant</a>
 </div>
-
 <div class="main">
   <div class="topbar">
     <h1>Sales Assistant</h1>
@@ -113,7 +113,7 @@
 
     <div class="assistant-panel" id="assistant-panel">
       <div class="empty-state">
-        <div>🤖</div>
+        <div></div>
         <p>Select a lead to get AI-powered sales assistance</p>
       </div>
     </div>
@@ -121,13 +121,18 @@
 </div>
 
 <!-- Chat Toggle Button -->
-<button class="chat-toggle" onclick="toggleChat()">💬</button>
+<button class="chat-toggle icon-button" onclick="toggleChat()" aria-label="Open chat">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <path d="M8 9h8M8 13h5" />
+  </svg>
+</button>
 
 <!-- Chat Window -->
 <div class="chat-window" id="chat-window">
   <div class="chat-header">
     <div class="chat-header-left">
-      <div class="chat-avatar">🤖</div>
+      <div class="chat-avatar">AI</div>
       <div>
         <div class="chat-header-title">Sales AI Assistant</div>
         <div class="chat-header-sub">Ask anything about your leads</div>
@@ -149,7 +154,12 @@
 
   <div class="chat-input-area">
     <input class="chat-input" id="chat-input" type="text" placeholder="Ask about your leads..." onkeydown="if(event.key==='Enter') sendChat()">
-    <button class="chat-send" onclick="sendChat()">➤</button>
+    <button class="chat-send icon-button" onclick="sendChat()" aria-label="Send message">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -206,17 +216,17 @@ async function selectLead(index) {
 
     <div class="tools-grid">
       <div class="tool-card">
-        <div class="tool-title">💬 Discovery Questions</div>
+        <div class="tool-title">Discovery Questions</div>
         <div class="tool-content">${data.discovery_questions}</div>
       </div>
       <div class="tool-card">
-        <div class="tool-title">🎯 Pitch Suggestion</div>
+        <div class="tool-title">Pitch Suggestion</div>
         <div class="tool-content">${data.pitch_suggestion}</div>
       </div>
     </div>
 
     <div class="summary-section">
-      <div class="summary-title">📝 Meeting Summary Generator</div>
+      <div class="summary-title">Meeting Summary Generator</div>
       <textarea class="summary-textarea" id="meeting-notes" placeholder="Paste your meeting notes here — what was discussed, what the lead said, any objections, next steps mentioned..."></textarea>
       <button class="generate-btn" id="summary-btn" onclick="generateSummary(${index})">Generate Summary</button>
       <div class="summary-output" id="summary-output"></div>
