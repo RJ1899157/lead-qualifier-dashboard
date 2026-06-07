@@ -1,6 +1,7 @@
 #lead_repository.py
 from airtable_client import leads_table
 
+
 def get_all_leads():
     records = leads_table.all()
     result = []
@@ -31,44 +32,39 @@ def get_all_leads():
         })
     return result
 
-def create_lead(lead):
 
-    airtable_lead = {
+def _to_airtable_fields(lead):
+    return {
         "lead_id": lead.get("lead_id"),
-
         "full_name": lead.get("full_name"),
         "designation": lead.get("designation"),
         "company_name": lead.get("company_name"),
-
         "industry": lead.get("industry"),
         "country": lead.get("country"),
-
         "linkedin_profile": lead.get("linkedin_profile", ""),
         "work_email": lead.get("work_email", ""),
         "phone_number": lead.get("phone_number", ""),
         "website": lead.get("website", ""),
-
         "company_size": lead.get("company_size"),
-
         "engagement": lead.get("engagement", ""),
-
         "score": lead.get("score"),
         "status": lead.get("status"),
-
         "score_explanation": lead.get("score_explanation", ""),
         "recommended_action": lead.get("recommended_action", ""),
         "ai_summary": lead.get("ai_summary", ""),
-
         "interaction_count": lead.get("interaction_count", 0),
-
-        "knowledge_base": str(
-            lead.get("knowledge_base", "")
-        ),
-
+        "knowledge_base": str(lead.get("knowledge_base", "")),
         "priority_rank": lead.get("priority_rank", 0)
     }
 
-    return leads_table.create(airtable_lead)
+
+def create_lead(lead):
+    return leads_table.create(_to_airtable_fields(lead))
+
+
+def update_lead(record_id, lead):
+    return leads_table.update(record_id, _to_airtable_fields(lead))
+
 
 def delete_lead(record_id):
     leads_table.delete(record_id)

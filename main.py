@@ -5,12 +5,11 @@ from pydantic import BaseModel
 from lead_qualifier import qualify_lead
 from data_loader import load_csv
 import os
+import tempfile
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-import pandas as pd
-from lead_repository import (get_all_leads, create_lead, delete_lead)
+from lead_repository import get_all_leads, create_lead, update_lead, delete_lead
 from utils import generate_lead_id
 
 load_dotenv()
@@ -47,34 +46,56 @@ def add_lead(lead: NewLead):
     new_lead = lead.dict()
     qualified = qualify_lead(new_lead)
     qualified["lead_id"] = generate_lead_id()
-    create_lead(qualified)
+    created = create_lead(qualified)
+    qualified["_record_id"] = created["id"]
     return qualified
+
 
 @app.post("/api/leads/upload-csv")
 async def upload_csv(file: UploadFile = File(...)):
     existing_leads = get_all_leads()
-    temp_path = f"temp_{file.filename}"
+    temp_path = None
 
-    with open(temp_path, "wb") as f:
-        f.write(await file.read())
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as temp_file:
+            temp_file.write(await file.read())
+            temp_path = temp_file.name
 
-    records = load_csv(temp_path)
-    added_count = 0
-    replaced_count = 0
+        records = load_csv(temp_path)
+        added_count = 0
+        replaced_count = 0
 
-    for record in records:
-        qualified = qualify_lead(record)
+        for record in records:
+            qualified = qualify_lead(record)
+            duplicate = next(
+                (
+                    lead for lead in existing_leads
+                    if lead["full_name"] == qualified["full_name"]
+                    and lead["company_name"] == qualified["company_name"]
+                ),
+                None
+            )
 
-        duplicate = next(
-            (l for l in existing_leads if l["full_name"] == qualified["full_name"] and l["company_name"] == qualified["company_name"]), None)
-        if duplicate is not None:
-            replaced_count += 1
-        else:
-            qualified["lead_id"] = generate_lead_id()
-            create_lead(qualified)
-            added_count += 1
+            if duplicate is not None:
+                qualified["lead_id"] = duplicate["lead_id"]
+                update_lead(duplicate["_record_id"], qualified)
+                duplicate.update(qualified)
+                replaced_count += 1
+            else:
+                qualified["lead_id"] = generate_lead_id()
+                created = create_lead(qualified)
+                qualified["_record_id"] = created["id"]
+                existing_leads.append(qualified)
+                added_count += 1
 
-    return {"message": "Upload complete", "added": added_count, "replaced": replaced_count}
+        return {
+            "message": "Upload complete",
+            "added": added_count,
+            "replaced": replaced_count
+        }
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
 @app.delete("/api/leads/{record_id}")
 def delete_lead_endpoint(record_id: str):
@@ -141,7 +162,7 @@ def chat_with_leads(request: dict):
     user_message = request.get("message", "")
     
     leads_context = "\n".join([
-        f"- {l['full_name']} | {l['designation']} at {l['company_name']} | {l['industry']} | {l['country']} | Score: {l.get('score', 'N/A')} | Status: {l.get('status', 'N/A')} | Engagement: {l['engagement']} | Reason: {l.get('reason', '')} | Action: {l.get('action', '')}"
+        f"- {l['full_name']} | {l['designation']} at {l['company_name']} | {l['industry']} | {l['country']} | Score: {l.get('score', 'N/A')} | Status: {l.get('status', 'N/A')} | Engagement: {l['engagement']} | Reason: {l.get('score_explanation', '')} | Action: {l.get('recommended_action', '')}"
         for l in leads
     ])
     

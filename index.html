@@ -369,6 +369,8 @@ function showDetail(index) {
 
 async function deleteLead(event, recordId) {
   event.stopPropagation();
+  const index = allLeads.findIndex(lead => lead._record_id === recordId);
+  if (index === -1) return;
   if (!confirm(`Delete ${allLeads[index].full_name}?`)) return;
   const res = await fetch(`/api/leads/${recordId}`, { method: 'DELETE' });
   if (res.ok) {
