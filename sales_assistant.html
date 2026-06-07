@@ -18,7 +18,12 @@
   .nav-item.active { background: #6366f1; color: #fff; }
 
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .topbar { padding: 20px 28px; border-bottom: 1px solid #334155; }
+  .topbar { padding: 20px 28px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .topbar p { margin: 0; }
+  .sidebar-toggle-btn { border: 1px solid #334155; color: #cbd5e1; background: #111827; border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s ease; }
+  .sidebar-toggle-btn:hover { background: #334155; color: #f8fafc; }
+  body.sidebar-hidden .sidebar { display: none; }
+  body.sidebar-hidden .main { flex: 1; }
   .topbar h1 { font-size: 20px; font-weight: 600; }
   .topbar p { font-size: 13px; color: #64748b; margin-top: 4px; }
 
@@ -99,11 +104,15 @@
   <div class="logo">Lead<span>AI</span></div>
   <a href="/" class="nav-item">Dashboard</a>
   <a href="/sales-assistant" class="nav-item active">Sales Assistant</a>
+  <a href="/?tab=analytics" class="nav-item">Analytics</a>
 </div>
 <div class="main">
   <div class="topbar">
-    <h1>Sales Assistant</h1>
-    <p>AI-powered discovery questions, pitch suggestions and meeting summaries</p>
+    <div>
+      <h1>Sales Assistant</h1>
+      <p>AI-powered discovery questions, pitch suggestions and meeting summaries</p>
+    </div>
+    <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()">Hide Sidebar</button>
   </div>
 
   <div class="content">
@@ -166,6 +175,37 @@
 let leads = [];
 let selectedIndex = null;
 
+function sanitizeTextForHTML(text) {
+  if (text == null) return '';
+  return String(text)
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/—/g, '&mdash;')
+    .replace(/…/g, '&hellip;')
+    .replace(/•/g, '&bull;')
+    .replace(/→/g, '&rarr;')
+    .replace(/←/g, '&larr;')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function sanitizeTextForText(text) {
+  if (text == null) return '';
+  return String(text)
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/—/g, '-')
+    .replace(/…/g, '...')
+    .replace(/•/g, '-')
+    .replace(/→/g, '->')
+    .replace(/←/g, '<-');
+}
+
+function htmlEncode(text) {
+  return sanitizeTextForHTML(text).replace(/\n/g, '<br>');
+}
+
 async function loadLeads() {
   const res = await fetch('/api/leads');
   leads = await res.json();
@@ -180,13 +220,20 @@ async function loadLeads() {
 
 function renderLeadsList() {
   const container = document.getElementById('leads-container');
-  container.innerHTML = leads.map((lead, i) => `
-    <div class="lead-item ${selectedIndex === i ? 'active' : ''}" onclick="selectLead(${i})">
-      <div class="lead-item-name">${lead.full_name}</div>
-      <div class="lead-item-role">${lead.designation} at ${lead.company_name}</div>
-      <span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${lead.status}</span>
-    </div>
-  `).join('');
+  container.innerHTML = leads.map((lead, i) => {
+    const fullName = sanitizeTextForHTML(lead.full_name);
+    const designation = sanitizeTextForHTML(lead.designation);
+    const companyName = sanitizeTextForHTML(lead.company_name);
+    const status = sanitizeTextForHTML(lead.status || 'Unknown');
+    const badgeClass = lead.status ? lead.status.toLowerCase() : 'cold';
+    return `
+      <div class="lead-item ${selectedIndex === i ? 'active' : ''}" onclick="selectLead(${i})">
+        <div class="lead-item-name">${fullName}</div>
+        <div class="lead-item-role">${designation} at ${companyName}</div>
+        <span class="badge badge-${badgeClass}">${status}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 async function selectLead(index) {
@@ -199,28 +246,36 @@ async function selectLead(index) {
   const res = await fetch(`/api/sales-assistant/${index}`);
   const data = await res.json();
   const lead = data.lead;
+  const fullName = sanitizeTextForHTML(lead.full_name);
+  const designation = sanitizeTextForHTML(lead.designation);
+  const companyName = sanitizeTextForHTML(lead.company_name);
+  const leadStatus = sanitizeTextForHTML(lead.status || 'Unknown');
+  const industry = sanitizeTextForHTML(lead.industry);
+  const country = sanitizeTextForHTML(lead.country);
+  const discoveryQuestions = htmlEncode(data.discovery_questions);
+  const pitchSuggestion = htmlEncode(data.pitch_suggestion);
 
   panel.innerHTML = `
     <div class="lead-header">
       <div class="lead-header-info">
-        <h2>${lead.full_name}</h2>
-        <p>${lead.designation} at ${lead.company_name}</p>
+        <h2>${fullName}</h2>
+        <p>${designation} at ${companyName}</p>
       </div>
       <div class="lead-header-meta">
-        <span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${lead.status}</span>
-        <div style="margin-top:6px">Score: ${lead.score}/100</div>
-        <div>${lead.industry} · ${lead.country}</div>
+        <span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${leadStatus}</span>
+        <div style="margin-top:6px">Score: ${sanitizeTextForText(lead.score)}/100</div>
+        <div>${industry} · ${country}</div>
       </div>
     </div>
 
     <div class="tools-grid">
       <div class="tool-card">
         <div class="tool-title">Discovery Questions</div>
-        <div class="tool-content">${data.discovery_questions}</div>
+        <div class="tool-content">${discoveryQuestions}</div>
       </div>
       <div class="tool-card">
         <div class="tool-title">Pitch Suggestion</div>
-        <div class="tool-content">${data.pitch_suggestion}</div>
+        <div class="tool-content">${pitchSuggestion}</div>
       </div>
     </div>
 
@@ -257,7 +312,7 @@ async function generateSummary(index) {
   const data = await res.json();
   const output = document.getElementById('summary-output');
   output.style.display = 'block';
-  output.textContent = data.summary;
+  output.textContent = sanitizeTextForText(data.summary);
 
   btn.disabled = false;
   btn.textContent = 'Generate Summary';
@@ -312,6 +367,21 @@ async function resetChat() {
 }
 
 loadLeads();
+restoreSidebarState();
+
+function toggleSidebar() {
+  const hidden = document.body.classList.toggle('sidebar-hidden');
+  document.getElementById('sidebar-toggle').textContent = hidden ? 'Show Sidebar' : 'Hide Sidebar';
+  localStorage.setItem('sidebarHidden', hidden ? 'true' : 'false');
+}
+
+function restoreSidebarState() {
+  const hidden = localStorage.getItem('sidebarHidden') === 'true';
+  if (hidden) {
+    document.body.classList.add('sidebar-hidden');
+  }
+  document.getElementById('sidebar-toggle').textContent = hidden ? 'Show Sidebar' : 'Hide Sidebar';
+}
 </script>
 </body>
 </html>

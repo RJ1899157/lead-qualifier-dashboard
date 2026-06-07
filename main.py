@@ -1,6 +1,6 @@
 # main.py
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from lead_qualifier import qualify_lead
 from data_loader import load_csv
@@ -16,6 +16,9 @@ load_dotenv()
 
 app = FastAPI()
 llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=os.getenv("GROQ_API_KEY"))
+
+def json_response(content):
+    return JSONResponse(content=content, media_type="application/json; charset=utf-8")
 
 class NewLead(BaseModel):
     full_name: str
@@ -39,7 +42,7 @@ class MeetingSummary(BaseModel):
 
 @app.get("/api/leads")
 def get_leads():
-    return get_all_leads()
+    return json_response(get_all_leads())
 
 @app.post("/api/leads")
 def add_lead(lead: NewLead):
@@ -48,7 +51,7 @@ def add_lead(lead: NewLead):
     qualified["lead_id"] = generate_lead_id()
     created = create_lead(qualified)
     qualified["_record_id"] = created["id"]
-    return qualified
+    return json_response(qualified)
 
 
 @app.post("/api/leads/upload-csv")
@@ -88,11 +91,11 @@ async def upload_csv(file: UploadFile = File(...)):
                 existing_leads.append(qualified)
                 added_count += 1
 
-        return {
+        return json_response({
             "message": "Upload complete",
             "added": added_count,
             "replaced": replaced_count
-        }
+        })
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
@@ -100,7 +103,18 @@ async def upload_csv(file: UploadFile = File(...)):
 @app.delete("/api/leads/{record_id}")
 def delete_lead_endpoint(record_id: str):
     delete_lead(record_id)
-    return {"message": "Lead deleted"}
+    return json_response({"message": "Lead deleted"})
+
+@app.put("/api/leads/{record_id}")
+def update_lead_endpoint(record_id: str, lead: NewLead):
+    updated = lead.dict()
+    qualified = qualify_lead(updated)
+    existing_leads = get_all_leads()
+    existing = next((l for l in existing_leads if l["_record_id"] == record_id), None)
+    qualified["lead_id"] = existing["lead_id"] if existing else generate_lead_id()
+    update_lead(record_id, qualified)
+    qualified["_record_id"] = record_id
+    return json_response(qualified)
 
 @app.get("/api/sales-assistant/{index}")
 def get_sales_assistant(index: int):
@@ -132,7 +146,7 @@ Return ONLY the pitch in 3-4 sentences, nothing else."""
         HumanMessage(content=pitch_prompt)
     ]).content
 
-    return {"lead": lead, "discovery_questions": discovery, "pitch_suggestion": pitch}
+    return json_response({"lead": lead, "discovery_questions": discovery, "pitch_suggestion": pitch})
 
 @app.post("/api/meeting-summary")
 def generate_meeting_summary(data: MeetingSummary):
@@ -187,13 +201,13 @@ Always be concise, actionable and specific to the leads in the database."""))
     response = llm.invoke(chat_history)
     chat_history.append(AIMessage(content=response.content))
     
-    return {"response": response.content}
+    return json_response({"response": response.content})
 
 @app.post("/api/chat/reset")
 def reset_chat():
     global chat_history
     chat_history = []
-    return {"message": "Chat reset"}
+    return json_response({"message": "Chat reset"})
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
