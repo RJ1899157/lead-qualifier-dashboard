@@ -13,7 +13,6 @@ llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
-
 def generate_reason_and_action(lead):
     prompt = f"""
 You are a sales intelligence assistant.
@@ -21,9 +20,9 @@ A deterministic scoring engine has already scored this lead.
 Your task is ONLY to explain the score in human-readable form.
 
 Lead Details:
-- Name: {lead['name']}
-- Role: {lead['role']}
-- Company: {lead['company']}
+- Name: {lead['full_name']}
+- Role: {lead['designation']}
+- Company: {lead['company_name']}
 - Industry: {lead['industry']}
 - Country: {lead['country']}
 - Company Size: {lead['company_size']}
@@ -77,7 +76,11 @@ def parse_response(response):
     return result
 
 def qualify_lead(lead):
-    return score_lead_deterministic(lead)
+    scored = score_lead_deterministic(lead)
+    ai_result = generate_reason_and_action(scored)
+    scored["score_explanation"] = ai_result.get("reason", "Lead scored using deterministic scoring.")
+    scored["recommended_action"] = ai_result.get("action", "Review lead manually.")
+    return scored
 
 def qualify_all_leads():
     return []

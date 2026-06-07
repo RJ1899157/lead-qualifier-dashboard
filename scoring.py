@@ -42,15 +42,11 @@ def get_engagement_score(engagement):
 
     if "requested" in engagement or "demo" in engagement or "call" in engagement:
         return 10
-
     if "replied" in engagement:
         return 8
-
     if "opened" in engagement or "clicked" in engagement:
         return 5
-
     return 0
-
 
 def classify_lead(score):
     # Align status boundaries with frontend score coloring and reserve Hot for the top tier.
@@ -60,9 +56,8 @@ def classify_lead(score):
         return "Warm"
     return "Cold"
 
-
 def score_lead_deterministic(lead):
-    role_score = ROLE_SCORES.get(lead["role"], 5)
+    role_score = ROLE_SCORES.get(lead["designation"], 5)
     industry_score = INDUSTRY_SCORES.get(lead["industry"], 10)
     country_score = COUNTRY_SCORES.get(lead["country"], 5)
     company_size_score = get_company_size_score(lead["company_size"])

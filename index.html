@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lead Qualifier Dashboard</title>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; display: flex; height: 100vh; }
@@ -12,7 +13,8 @@
   .sidebar { width: 240px; background: #1e293b; padding: 24px 16px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #334155; }
   .logo { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 24px; padding: 0 8px; }
   .logo span { color: #6366f1; }
-  .nav-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #94a3b8; }
+  .nav-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #94a3b8; text-decoration: none}
+  .nav-item:hover:not(.active) { background: #334155; color: #f8fafc; }
   .nav-item.active { background: #6366f1; color: #fff; }
   .filter-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 12px 8px; }
   .filter-btn { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #94a3b8; }
@@ -68,7 +70,6 @@
   .detail-section-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
   .detail-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #334155; }
   .detail-row-label { color: #64748b; }
-  .detail-action { background: #6366f1; color: #fff; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; margin-top: 8px; }
   .detail-reason { background: #0f172a; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: #94a3b8; margin-top: 8px; }
 
   /* Modal */
@@ -93,13 +94,14 @@
   .qualifying-msg { text-align: center; padding: 20px; color: #6366f1; font-size: 13px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   /* Chatbot */
-  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 52px; height: 52px; background: #158d93; border-radius: 50%; border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; display: inline-flex; align-items: center; justify-content: center; }
+  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 55px; height: 55px; background: #158d93; border-radius: 50%; border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; display: inline-flex; align-items: center; justify-content: center; }
+  .chat-toggle i {font-size: 26px; display: inline-block; line-height: 1; transform: translateY(2px);}
   .icon-button img, .icon-button svg { width: 20px; height: 20px; display: block; }
   .chat-window { position: fixed; bottom: 92px; right: 28px; width: 380px; height: 500px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; display: flex; flex-direction: column; z-index: 200; box-shadow: 0 8px 40px rgba(0,0,0,0.4); display: none; }
   .chat-window.open { display: flex; }
-  .chat-header { padding: 16px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+  .chat-header { padding: 8px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
   .chat-header-left { display: flex; align-items: center; gap: 10px; }
-  .chat-avatar { width: 32px; height: 32px; background: #158d93; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .chat-avatar { width: 38px; height: 38px; background: #158d93; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
   .chat-header-title { font-size: 13px; font-weight: 600; color: #f8fafc; }
   .chat-header-sub { font-size: 11px; color: #64748b; }
   .chat-reset { background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 11px; }
@@ -112,8 +114,9 @@
   .chat-input-area { padding: 12px; border-top: 1px solid #334155; display: flex; gap: 8px; }
   .chat-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 12.5px; font-family: inherit; }
   .chat-input:focus { outline: none; border-color: #6366f1; }
-  .chat-send { background: #6366f1; border: none; color: #fff; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 14px; }
-  .chat-send:hover { background: #4f46e5; }
+  .chat-send { background: transparent; border: none; color: #e2e8f0; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease}
+  .chat-send i { font-size: 15px; display: inline-block; line-height: 1; transform: translateY(2px);}
+  .chat-send:hover { color: #64748b; }
   .chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
   .suggestion-chip { background: #0f172a; border: 1px solid #334155; border-radius: 20px; padding: 5px 10px; font-size: 11px; color: #94a3b8; cursor: pointer; }
   .suggestion-chip:hover { border-color: #6366f1; color: #6366f1; }
@@ -154,9 +157,6 @@
         </div>
         <div class="dropdown-item" onclick="document.getElementById('csv-upload').click()">
           Bulk Upload CSV
-        </div>
-        <div class="dropdown-item">
-          Import via URL (Coming Soon)
         </div>
       </div>
       <input
@@ -281,9 +281,9 @@ function renderTable(leads) {
     const realIndex = allLeads.indexOf(lead);
     return `
     <tr id="row-${realIndex}" onclick="showDetail(${realIndex})">
-      <td><strong>${lead.name}</strong></td>
-      <td>${lead.role}</td>
-      <td>${lead.company}</td>
+      <td><strong>${lead.full_name}</strong></td>
+      <td>${lead.designation}</td>
+      <td>${lead.company_name}</td>
       <td>${lead.industry}</td>
       <td>${lead.country}</td>
       <td>
@@ -293,7 +293,7 @@ function renderTable(leads) {
         </div>
       </td>
       <td><span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${lead.status || 'Unknown'}</span></td>
-      <td><button class="delete-btn" onclick="deleteLead(event, ${realIndex})">Delete</button></td>
+      <td><button class="delete-btn" onclick="deleteLead(event, '${lead._record_id}')">Delete</button></td>
     </tr>
   `}).join('');
 }
@@ -318,12 +318,12 @@ function showDetail(index) {
   panel.classList.add('open');
   panel.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <div class="detail-name">${lead.name}</div>
+      <div class="detail-name">${lead.full_name}</div>
       <button onclick="closeDetailPanel()" style=" background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer; ">
         &times
       </button>
     </div>
-    <div class="detail-role">${lead.role} at ${lead.company}</div>
+    <div class="detail-role">${lead.designation} at ${lead.company_name}</div>
     <span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}" style="margin-bottom:20px;display:inline-block">${lead.status}</span>
     <div class="detail-section">
       <div class="detail-section-title">Lead Info</div>
@@ -333,25 +333,44 @@ function showDetail(index) {
       <div class="detail-row"><span class="detail-row-label">Score</span><span>${lead.score}/100</span></div>
     </div>
     <div class="detail-section">
+      <div class="detail-section-title">Contact Information</div>
+      <div class="detail-row">
+        <span class="detail-row-label">Email</span>
+        <span>${lead.work_email || '-'}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-row-label">Phone</span>
+        <span>${lead.phone_number || '-'}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-row-label">Website</span>
+        <span>${lead.website || '-'}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-row-label">LinkedIn</span>
+        <span>${lead.linkedin_profile || '-'}</span>
+      </div>
+    </div>
+    <div class="detail-section">
       <div class="detail-section-title">Engagement</div>
       <div class="detail-reason">${lead.engagement}</div>
     </div>
     <div class="detail-section">
       <div class="detail-section-title">AI Analysis</div>
-      <div class="detail-reason">${lead.reason || 'No reason provided'}</div>
+      <div class="detail-reason">${lead.score_explanation || 'No reason provided'}</div>
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Recommended Action</div>
-      <div class="detail-action">${lead.action || 'No action provided'}</div>
+      <div class="detail-reason">${lead.recommended_action || 'No action provided'}</div>
     </div>
     <a href="/sales-assistant?lead=${index}" style="display:block;margin-top:16px;background:#6366f1;color:#fff;padding:12px;border-radius:8px;font-size:13px;text-align:center;text-decoration:none;font-weight:500">Open Sales Assistant</a>
   `;
 }
 
-async function deleteLead(event, index) {
+async function deleteLead(event, recordId) {
   event.stopPropagation();
-  if (!confirm(`Delete ${allLeads[index].name}?`)) return;
-  const res = await fetch(`/api/leads/${index}`, { method: 'DELETE' });
+  if (!confirm(`Delete ${allLeads[index].full_name}?`)) return;
+  const res = await fetch(`/api/leads/${recordId}`, { method: 'DELETE' });
   if (res.ok) {
     allLeads.splice(index, 1);
     const filtered = currentFilter === 'all' ? allLeads : allLeads.filter(l => l.status === currentFilter);
@@ -400,11 +419,15 @@ async function submitLead() {
   btn.textContent = 'Qualifying...';
 
   const lead = {
-    name,
-    role,
-    company,
+    full_name: name,
+    designation: role,
+    company_name: company,
     industry: document.getElementById('f-industry').value,
     country: document.getElementById('f-country').value,
+    linkedin_profile: "",
+    work_email: "",
+    phone_number: "",
+    website: "",
     company_size: parseInt(size),
     engagement
   };
@@ -518,20 +541,18 @@ function showToast(message) {
 </script>
 <!-- Chat Toggle Button -->
 <button class="chat-toggle icon-button" onclick="toggleChat()" aria-label="Open chat">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    <path d="M8 9h8M8 13h5" />
-  </svg>
+  <i class="fi fi-sr-chatbot"></i>
 </button>
 
 <!-- Chat Window -->
 <div class="chat-window" id="chat-window">
   <div class="chat-header">
     <div class="chat-header-left">
-      <div class="chat-avatar">AI</div>
+      <div class="chat-avatar">
+        <i class="fi fi-sr-user-robot"></i>
+      </div>
       <div>
         <div class="chat-header-title">Sales AI Assistant</div>
-        <div class="chat-header-sub">Ask anything about your leads</div>
       </div>
     </div>
     <button class="chat-reset" onclick="resetChat()">Reset chat</button>
@@ -551,10 +572,7 @@ function showToast(message) {
   <div class="chat-input-area">
     <input class="chat-input" id="chat-input" type="text" placeholder="Ask about your leads..." onkeydown="if(event.key==='Enter') sendChat()">
     <button class="chat-send icon-button" onclick="sendChat()" aria-label="Send message">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="22" y1="2" x2="11" y2="13" />
-        <polygon points="22 2 15 22 11 13 2 9 22 2" />
-      </svg>
+      <i class="fi fi-sr-paper-plane-top"></i>
     </button>
   </div>
 </div>

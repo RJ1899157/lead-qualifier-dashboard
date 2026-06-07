@@ -10,20 +10,24 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 import pandas as pd
+from lead_repository import (get_all_leads, create_lead, delete_lead)
+from utils import generate_lead_id
 
 load_dotenv()
 
 app = FastAPI()
 llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=os.getenv("GROQ_API_KEY"))
 
-leads_db = []
-
 class NewLead(BaseModel):
-    name: str
-    role: str
-    company: str
+    full_name: str
+    designation: str
+    company_name: str
     industry: str
     country: str
+    linkedin_profile: str = ""
+    work_email: str = ""
+    phone_number: str = ""
+    website: str = ""
     company_size: int
     engagement: str
 
@@ -36,21 +40,19 @@ class MeetingSummary(BaseModel):
 
 @app.get("/api/leads")
 def get_leads():
-    global leads_db
-    return leads_db
+    return get_all_leads()
 
 @app.post("/api/leads")
 def add_lead(lead: NewLead):
-    global leads_db
     new_lead = lead.dict()
-    print(f"Qualifying new lead: {new_lead['name']}...")
     qualified = qualify_lead(new_lead)
-    leads_db.append(qualified)
+    qualified["lead_id"] = generate_lead_id()
+    create_lead(qualified)
     return qualified
 
 @app.post("/api/leads/upload-csv")
 async def upload_csv(file: UploadFile = File(...)):
-    global leads_db
+    existing_leads = get_all_leads()
     temp_path = f"temp_{file.filename}"
 
     with open(temp_path, "wb") as f:
@@ -63,49 +65,37 @@ async def upload_csv(file: UploadFile = File(...)):
     for record in records:
         qualified = qualify_lead(record)
 
-        duplicate_index = next(
-            (i for i, existing in enumerate(leads_db)
-             if existing["name"] == qualified["name"]
-             and existing["company"] == qualified["company"]
-            ),
-            None
-        )
-        if duplicate_index is not None:
-            leads_db[duplicate_index] = qualified
+        duplicate = next(
+            (l for l in existing_leads if l["full_name"] == qualified["full_name"] and l["company_name"] == qualified["company_name"]), None)
+        if duplicate is not None:
             replaced_count += 1
         else:
-            leads_db.append(qualified)
+            qualified["lead_id"] = generate_lead_id()
+            create_lead(qualified)
             added_count += 1
 
-    return {
-        "message": "Upload complete",
-        "added": added_count,
-        "replaced": replaced_count
-    }
+    return {"message": "Upload complete", "added": added_count, "replaced": replaced_count}
 
-@app.delete("/api/leads/{index}")
-def delete_lead(index: int):
-    global leads_db
-    if 0 <= index < len(leads_db):
-        deleted = leads_db.pop(index)
-        return {"message": f"Deleted {deleted['name']}"}
-    return {"error": "Invalid index"}
+@app.delete("/api/leads/{record_id}")
+def delete_lead_endpoint(record_id: str):
+    delete_lead(record_id)
+    return {"message": "Lead deleted"}
 
 @app.get("/api/sales-assistant/{index}")
 def get_sales_assistant(index: int):
-    global leads_db
-    if index < 0 or index >= len(leads_db):
+    leads = get_all_leads()
+    if index < 0 or index >= len(leads):
         return {"error": "Invalid index"}
-    lead = leads_db[index]
+    lead = leads[index]
 
     discovery_prompt = f"""Generate 5 smart discovery questions to ask this lead in a sales call.
-Lead: {lead['name']}, {lead['role']} at {lead['company']} ({lead['industry']}, {lead['country']}, {lead['company_size']} employees)
+Lead: {lead['full_name']}, {lead['designation']} at {lead['company_name']} ({lead['industry']}, {lead['country']}, {lead['company_size']} employees)
 Engagement: {lead['engagement']}
 
 Return ONLY a numbered list of 5 questions, nothing else."""
 
     pitch_prompt = f"""Generate a personalized sales pitch angle for this lead for an AI solutions company.
-Lead: {lead['name']}, {lead['role']} at {lead['company']} ({lead['industry']}, {lead['country']}, {lead['company_size']} employees)
+Lead: {lead['full_name']}, {lead['designation']} at {lead['company_name']} ({lead['industry']}, {lead['country']}, {lead['company_size']} employees)
 Engagement: {lead['engagement']}
 Lead Status: {lead.get('status')}
 
@@ -121,11 +111,7 @@ Return ONLY the pitch in 3-4 sentences, nothing else."""
         HumanMessage(content=pitch_prompt)
     ]).content
 
-    return {
-        "lead": lead,
-        "discovery_questions": discovery,
-        "pitch_suggestion": pitch
-    }
+    return {"lead": lead, "discovery_questions": discovery, "pitch_suggestion": pitch}
 
 @app.post("/api/meeting-summary")
 def generate_meeting_summary(data: MeetingSummary):
@@ -149,13 +135,14 @@ chat_history = []
 
 @app.post("/api/chat")
 def chat_with_leads(request: dict):
-    global chat_history, leads_db
+    global chat_history
+    leads = get_all_leads()
     
     user_message = request.get("message", "")
     
     leads_context = "\n".join([
-        f"- {l['name']} | {l['role']} at {l['company']} | {l['industry']} | {l['country']} | Score: {l.get('score', 'N/A')} | Status: {l.get('status', 'N/A')} | Engagement: {l['engagement']} | Reason: {l.get('reason', '')} | Action: {l.get('action', '')}"
-        for l in leads_db
+        f"- {l['full_name']} | {l['designation']} at {l['company_name']} | {l['industry']} | {l['country']} | Score: {l.get('score', 'N/A')} | Status: {l.get('status', 'N/A')} | Engagement: {l['engagement']} | Reason: {l.get('reason', '')} | Action: {l.get('action', '')}"
+        for l in leads
     ])
     
     if not chat_history:

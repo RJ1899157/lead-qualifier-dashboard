@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sales Assistant — LeadAI</title>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; display: flex; height: 100vh; }
@@ -13,7 +14,7 @@
   .logo { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 24px; padding: 0 8px; }
   .logo span { color: #6366f1; }
   .nav-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #94a3b8; text-decoration: none; display: block; }
-  .nav-item:hover { background: #334155; color: #f8fafc; }
+  .nav-item:hover:not(.active) { background: #334155; color: #f8fafc; }
   .nav-item.active { background: #6366f1; color: #fff; }
 
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -64,13 +65,14 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Chatbot */
-  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 52px; height: 52px; background: #6366f1; border-radius: 50%; border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; display: inline-flex; align-items: center; justify-content: center; }
+  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 55px; height: 55px; background: #158d93; border-radius: 50%; border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; display: inline-flex; align-items: center; justify-content: center; }
+  .chat-toggle i {font-size: 26px; display: inline-block; line-height: 1; transform: translateY(2px);}
   .icon-button img, .icon-button svg { width: 20px; height: 20px; display: block; }
   .chat-window { position: fixed; bottom: 92px; right: 28px; width: 380px; height: 500px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; flex-direction: column; z-index: 200; box-shadow: 0 8px 40px rgba(0,0,0,0.4); display: none; }
   .chat-window.open { display: flex; }
-  .chat-header { padding: 16px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+  .chat-header { padding: 8px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
   .chat-header-left { display: flex; align-items: center; gap: 10px; }
-  .chat-avatar { width: 32px; height: 32px; background: #6366f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .chat-avatar { width: 38px; height: 38px; background: #158d93; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
   .chat-header-title { font-size: 13px; font-weight: 600; color: #f8fafc; }
   .chat-header-sub { font-size: 11px; color: #64748b; }
   .chat-reset { background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 11px; }
@@ -83,8 +85,9 @@
   .chat-input-area { padding: 12px; border-top: 1px solid #334155; display: flex; gap: 8px; }
   .chat-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 12.5px; font-family: inherit; }
   .chat-input:focus { outline: none; border-color: #6366f1; }
-  .chat-send { background: #6366f1; border: none; color: #fff; width: 58px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-  .chat-send:hover { background: #4f46e5; }
+  .chat-send { background: transparent; border: none; color: #e2e8f0; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease}
+  .chat-send i { font-size: 15px; display: inline-block; line-height: 1; transform: translateY(2px);}
+  .chat-send:hover { color: #64748b; }
   .chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
   .suggestion-chip { background: #0f172a; border: 1px solid #334155; border-radius: 20px; padding: 5px 10px; font-size: 11px; color: #94a3b8; cursor: pointer; }
   .suggestion-chip:hover { border-color: #6366f1; color: #6366f1; }
@@ -122,17 +125,16 @@
 
 <!-- Chat Toggle Button -->
 <button class="chat-toggle icon-button" onclick="toggleChat()" aria-label="Open chat">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    <path d="M8 9h8M8 13h5" />
-  </svg>
+  <i class="fi fi-sr-chatbot"></i>
 </button>
 
 <!-- Chat Window -->
 <div class="chat-window" id="chat-window">
   <div class="chat-header">
     <div class="chat-header-left">
-      <div class="chat-avatar">AI</div>
+      <div class="chat-avatar">
+        <i class="fi fi-sr-user-robot"></i>
+      </div>
       <div>
         <div class="chat-header-title">Sales AI Assistant</div>
         <div class="chat-header-sub">Ask anything about your leads</div>
@@ -155,10 +157,7 @@
   <div class="chat-input-area">
     <input class="chat-input" id="chat-input" type="text" placeholder="Ask about your leads..." onkeydown="if(event.key==='Enter') sendChat()">
     <button class="chat-send icon-button" onclick="sendChat()" aria-label="Send message">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="22" y1="2" x2="11" y2="13" />
-        <polygon points="22 2 15 22 11 13 2 9 22 2" />
-      </svg>
+      <i class="fi fi-sr-paper-plane-top"></i>
     </button>
   </div>
 </div>
@@ -183,8 +182,8 @@ function renderLeadsList() {
   const container = document.getElementById('leads-container');
   container.innerHTML = leads.map((lead, i) => `
     <div class="lead-item ${selectedIndex === i ? 'active' : ''}" onclick="selectLead(${i})">
-      <div class="lead-item-name">${lead.name}</div>
-      <div class="lead-item-role">${lead.role} at ${lead.company}</div>
+      <div class="lead-item-name">${lead.full_name}</div>
+      <div class="lead-item-role">${lead.designation} at ${lead.company_name}</div>
       <span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${lead.status}</span>
     </div>
   `).join('');
@@ -204,8 +203,8 @@ async function selectLead(index) {
   panel.innerHTML = `
     <div class="lead-header">
       <div class="lead-header-info">
-        <h2>${lead.name}</h2>
-        <p>${lead.role} at ${lead.company}</p>
+        <h2>${lead.full_name}</h2>
+        <p>${lead.designation} at ${lead.company_name}</p>
       </div>
       <div class="lead-header-meta">
         <span class="badge badge-${lead.status ? lead.status.toLowerCase() : 'cold'}">${lead.status}</span>
@@ -247,9 +246,9 @@ async function generateSummary(index) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      lead_name: lead.name,
-      lead_role: lead.role,
-      lead_company: lead.company,
+      lead_name: lead.full_name,
+      lead_role: lead.designation,
+      lead_company: lead.company_name,
       lead_industry: lead.industry,
       notes: notes
     })
