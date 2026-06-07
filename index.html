@@ -516,6 +516,13 @@ function showTab(tab) {
     return;
   }
 
+  if (tab === 'dashboard') {
+    currentFilter = 'all';
+    updateFilterButtons(currentFilter);
+    applyFilter(currentFilter, tab);
+    return;
+  }
+
   applyFilter(currentFilter, tab);
 }
 
