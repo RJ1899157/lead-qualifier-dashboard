@@ -404,6 +404,7 @@ function htmlEncode(text) {
 async function loadLeads() {
   const res = await fetch('/api/leads');
   allLeads = await res.json();
+  currentSalesLeads = allLeads;
   renderTable(allLeads);
   updateStats(allLeads);
   document.getElementById('loading').style.display = 'none';
@@ -438,16 +439,26 @@ function applyFilter(status, targetTab) {
     : allLeads.filter(l => l.status === status);
 
   if (targetTab === 'sales') {
-    renderSalesLeads(filtered);
+    currentSalesLeads = filtered;
     if (!filtered.length) {
+      renderSalesLeads();
       document.getElementById('sales-assistant-panel').innerHTML = `
         <div class="empty-state"><div></div><p>No ${status.toLowerCase()} leads available for Sales Assistant.</p></div>
       `;
-    } else if (salesSelectedIndex === null || !filtered.some(lead => lead === allLeads[salesSelectedIndex])) {
+      salesSelectedIndex = null;
+      return;
+    }
+
+    if (salesSelectedIndex === null || !filtered.some(lead => lead === allLeads[salesSelectedIndex])) {
+      salesSelectedIndex = null;
+      renderSalesLeads();
       document.getElementById('sales-assistant-panel').innerHTML = `
         <div class="empty-state"><div></div><p>Select a lead to get AI-powered sales assistance</p></div>
       `;
+      return;
     }
+
+    renderSalesLeads();
     return;
   }
 
@@ -520,13 +531,17 @@ function loadAnalytics() {
 }
 
 let salesSelectedIndex = null;
+let currentSalesLeads = [];
 
-function renderSalesLeads(leads = allLeads) {
+function renderSalesLeads(leads = currentSalesLeads) {
   const container = document.getElementById('sales-leads-container');
   if (!leads.length) {
-    container.innerHTML = '<div class="loading-card"><div class="spinner"></div></div>';
+    container.innerHTML = allLeads.length === 0
+      ? '<div class="loading-card"><div class="spinner"></div></div>'
+      : '<div class="empty-state"><div></div><p>No leads match this filter.</p></div>';
     return;
   }
+  currentSalesLeads = leads;
   container.innerHTML = leads.map((lead) => {
     const realIndex = allLeads.indexOf(lead);
     const fullName = sanitizeTextForHTML(lead.full_name);
@@ -574,11 +589,6 @@ async function selectSalesLead(index) {
         <div style="margin-top:6px">Score: ${sanitizeTextForText(lead.score)}/100</div>
         <div>${industry} · ${country}</div>
       </div>
-    </div>
-
-    <div class="detail-action-group">
-      <button class="detail-action-btn" onclick="openEditModal(${index})">Modify Lead</button>
-      <button class="detail-action-btn delete-detail" onclick="deleteLead(event, '${lead._record_id}')">Delete Lead</button>
     </div>
 
     <div class="tools-grid">
@@ -1115,10 +1125,18 @@ async function uploadCSV() {
     method: 'POST',
     body: formData
   });
-  const data = await res.json();
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const errorMessage = data.error || 'CSV upload failed. Please check the file format.';
+    showToast(errorMessage);
+    return;
+  }
+
   showToast(
     `${data.added} leads added, ${data.replaced} duplicates updated`
   );
+  fileInput.value = '';
   loadLeads();
 }
 

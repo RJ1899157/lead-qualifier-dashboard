@@ -96,6 +96,18 @@ async def upload_csv(file: UploadFile = File(...)):
             "added": added_count,
             "replaced": replaced_count
         })
+    except ValueError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(exc)},
+            media_type="application/json; charset=utf-8"
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Unable to process CSV upload. " + str(exc)},
+            media_type="application/json; charset=utf-8"
+        )
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)

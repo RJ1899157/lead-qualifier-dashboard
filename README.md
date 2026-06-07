@@ -4,8 +4,8 @@
 
 **Team Members**
 - Rishabh Jain — Amity University Noida | CSE 2023–2027
-- Chetna Verma
-- Aniruddha Singh
+- Chetna Verma — Amity University Noida | CSE 2023–2027
+- Aniruddha Singh — Amity University Noida | CSE 2023–2027
 
 ## What it does
 An AI-powered Sales Intelligence and Lead Prioritization System that automatically
