@@ -223,12 +223,12 @@ def reset_chat():
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
-    with open("index.html", "r") as f:
+    with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/sales-assistant", response_class=HTMLResponse)
 def sales_assistant_page():
-    with open("sales_assistant.html", "r") as f:
+    with open("sales_assistant.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/sales-assistant/", response_class=HTMLResponse)
