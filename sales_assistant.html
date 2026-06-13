@@ -8,28 +8,29 @@
 <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; display: flex; height: 100vh; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; display: flex; height: 100vh; overflow: hidden;}
   
-  .sidebar { width: 240px; background: #1e293b; padding: 24px 16px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #334155; }
   .logo { font-size: 18px; font-weight: 700; color: #f8fafc; margin-bottom: 24px; padding: 0 8px; }
   .logo span { color: #6366f1; }
-  .nav-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #94a3b8; text-decoration: none; display: block; }
-  .nav-item:hover:not(.active) { background: #334155; color: #f8fafc; }
-  .nav-item.active { background: #6366f1; color: #fff; }
+  .filter-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 12px 8px; }
+  .filter-btn { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #94a3b8; }
+  .filter-btn:hover { background: #334155; color: #f8fafc; }
+  .filter-btn.active { background: #334155; color: #f8fafc; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-hot { background: #ef4444; }
+  .dot-warm { background: #f59e0b; }
+  .dot-cold { background: #3b82f6; }
 
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .topbar { padding: 20px 28px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; height: 100vh; }
+  .topbar { padding: 20px 28px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 14px; }
   .topbar p { margin: 0; }
-  .sidebar-toggle-btn { border: 1px solid #334155; color: #cbd5e1; background: #111827; border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s ease; }
-  .sidebar-toggle-btn:hover { background: #334155; color: #f8fafc; }
-  body.sidebar-hidden .sidebar { display: none; }
   body.sidebar-hidden .main { flex: 1; }
   .topbar h1 { font-size: 20px; font-weight: 600; }
   .topbar p { font-size: 13px; color: #64748b; margin-top: 4px; }
 
-  .content { flex: 1; display: flex; overflow: hidden; }
+  .content { flex: 1; display: flex; height: calc(100vh - 77px); overflow: hidden; }
   
-  .leads-list { width: 280px; border-right: 1px solid #334155; overflow-y: auto; padding: 16px; }
+  .leads-list { width: 280px; border-right: 1px solid #334155; height: 100%; overflow-y: auto; padding: 16px; flex-shrink: 0; }
   .leads-list h3 { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
   .lead-item { padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; margin-bottom: 8px; transition: all 0.15s; }
   .lead-item:hover { background: #1e293b; border-color: #334155; }
@@ -41,7 +42,7 @@
   .badge-warm { background: #451a03; color: #fbbf24; }
   .badge-cold { background: #0c1a3d; color: #60a5fa; }
 
-  .assistant-panel { flex: 1; overflow-y: auto; padding: 28px; }
+  .assistant-panel { flex: 1; height: 100%; overflow-y: auto; padding: 28px; }
   .empty-state { text-align: center; padding: 80px; color: #475569; }
   .empty-state div { font-size: 40px; margin-bottom: 16px; }
   .empty-state p { font-size: 15px; }
@@ -69,50 +70,23 @@
   .spinner { width: 28px; height: 28px; border: 3px solid #334155; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Chatbot */
-  .chat-toggle { position: fixed; bottom: 28px; right: 28px; width: 55px; height: 55px; background: #158d93; border-radius: 50%; border: none; cursor: pointer; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 200; display: inline-flex; align-items: center; justify-content: center; }
-  .chat-toggle i {font-size: 26px; display: inline-block; line-height: 1; transform: translateY(2px);}
-  .icon-button img, .icon-button svg { width: 20px; height: 20px; display: block; }
-  .chat-window { position: fixed; bottom: 92px; right: 28px; width: 380px; height: 500px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; flex-direction: column; z-index: 200; box-shadow: 0 8px 40px rgba(0,0,0,0.4); display: none; }
-  .chat-window.open { display: flex; }
-  .chat-header { padding: 8px 18px; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
-  .chat-header-left { display: flex; align-items: center; gap: 10px; }
-  .chat-avatar { width: 38px; height: 38px; background: #158d93; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .chat-header-title { font-size: 13px; font-weight: 600; color: #f8fafc; }
-  .chat-header-sub { font-size: 11px; color: #64748b; }
-  .chat-reset { background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 11px; }
-  .chat-reset:hover { color: #94a3b8; }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-  .chat-msg { max-width: 85%; padding: 10px 13px; border-radius: 12px; font-size: 12.5px; line-height: 1.6; }
-  .chat-msg.user { background: #6366f1; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-  .chat-msg.agent { background: #0f172a; color: #e2e8f0; align-self: flex-start; border-bottom-left-radius: 4px; }
-  .chat-msg.typing { color: #64748b; font-style: italic; }
-  .chat-input-area { padding: 12px; border-top: 1px solid #334155; display: flex; gap: 8px; }
-  .chat-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 12.5px; font-family: inherit; }
-  .chat-input:focus { outline: none; border-color: #6366f1; }
-  .chat-send { background: transparent; border: none; color: #e2e8f0; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease}
-  .chat-send i { font-size: 15px; display: inline-block; line-height: 1; transform: translateY(2px);}
-  .chat-send:hover { color: #64748b; }
-  .chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
-  .suggestion-chip { background: #0f172a; border: 1px solid #334155; border-radius: 20px; padding: 5px 10px; font-size: 11px; color: #94a3b8; cursor: pointer; }
-  .suggestion-chip:hover { border-color: #6366f1; color: #6366f1; }
+  app-chatbot { display: contents; }
+  ::-webkit-scrollbar { width: 6px;}
+  ::-webkit-scrollbar-track { background: #111827; }
+  ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px;}
+  ::-webkit-scrollbar-thumb:hover { background: #4B5563;}
 </style>
+<script src="/components.js" defer></script>
 </head>
 <body>
 
-<div class="sidebar">
-  <div class="logo">Lead<span>AI</span></div>
-  <a href="/" class="nav-item">Dashboard</a>
-  <a href="/sales-assistant" class="nav-item active">Sales Assistant</a>
-  <a href="/?tab=analytics" class="nav-item">Analytics</a>
-</div>
+<app-sidebar active="sales"></app-sidebar>
 <div class="main">
   <div class="topbar">
     <div>
       <h1>Sales Assistant</h1>
       <p>AI-powered discovery questions, pitch suggestions and meeting summaries</p>
     </div>
-    <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()">Hide Sidebar</button>
   </div>
 
   <div class="content">
@@ -132,48 +106,91 @@
   </div>
 </div>
 
-<!-- Chat Toggle Button -->
-<button class="chat-toggle icon-button" onclick="toggleChat()" aria-label="Open chat">
-  <i class="fi fi-sr-chatbot"></i>
-</button>
-
-<!-- Chat Window -->
-<div class="chat-window" id="chat-window">
-  <div class="chat-header">
-    <div class="chat-header-left">
-      <div class="chat-avatar">
-        <i class="fi fi-sr-user-robot"></i>
-      </div>
-      <div>
-        <div class="chat-header-title">Sales AI Assistant</div>
-        <div class="chat-header-sub">Ask anything about your leads</div>
-      </div>
-    </div>
-    <button class="chat-reset" onclick="resetChat()">Reset chat</button>
-  </div>
-
-  <div class="chat-messages" id="chat-messages">
-    <div class="chat-msg agent">Hi! I'm your Sales AI Assistant. I have full knowledge of your lead database. Ask me anything about leads, pitches, emails or sales strategy.</div>
-  </div>
-
-  <div class="chat-suggestions" id="suggestions">
-    <div class="suggestion-chip" onclick="sendSuggestion(this)">Who should I call first?</div>
-    <div class="suggestion-chip" onclick="sendSuggestion(this)">Draft email for top lead</div>
-    <div class="suggestion-chip" onclick="sendSuggestion(this)">What objections might I face?</div>
-    <div class="suggestion-chip" onclick="sendSuggestion(this)">Best pitch for pharma leads?</div>
-  </div>
-
-  <div class="chat-input-area">
-    <input class="chat-input" id="chat-input" type="text" placeholder="Ask about your leads..." onkeydown="if(event.key==='Enter') sendChat()">
-    <button class="chat-send icon-button" onclick="sendChat()" aria-label="Send message">
-      <i class="fi fi-sr-paper-plane-top"></i>
-    </button>
-  </div>
-</div>
+<app-chatbot></app-chatbot>
 
 <script>
 let leads = [];
+let filteredLeads = [];
 let selectedIndex = null;
+let currentFilterCategory = 'status';
+let currentFilterValue = 'all';
+let currentSortToken = 'none';
+let currentSearchQuery = '';
+
+function syncSidebarUI() {
+  let options = [{ value: 'all', label: 'All Leads' }];
+  if (currentFilterCategory === 'status') {
+    options.push({ value: 'Hot', label: 'Hot' }, { value: 'Warm', label: 'Warm' }, { value: 'Cold', label: 'Cold' });
+  } else {
+    let uniqueValues = [...new Set(leads.map(l => l[currentFilterCategory]).filter(Boolean))];
+    uniqueValues.forEach(val => options.push({ value: val, label: val }));
+  }
+  window.renderSidebarSubButtons(options, currentFilterValue, 'executeSalesFilter');
+}
+
+function handleCategoryChange(category) {
+  currentFilterCategory = category;
+  currentFilterValue = 'all';
+  syncSidebarUI();
+  executeSalesFilter('all');
+}
+window.handleCategoryChange = handleCategoryChange;
+
+function executeSalesFilter(value) {
+  currentFilterValue = value;
+  syncSidebarUI();
+  applyCombinedFilters();
+}
+window.executeSalesFilter = executeSalesFilter;
+
+function searchLeads(query) {
+  currentSearchQuery = query.toLowerCase().trim();
+  applyCombinedFilters();
+}
+window.searchLeads = searchLeads;
+
+function sortLeads(sortToken) {
+  currentSortToken = sortToken;
+  applyCombinedFilters();
+}
+window.sortLeads = sortLeads;
+
+function applyCombinedFilters() {
+  let workingLeads = currentFilterValue === 'all' 
+    ? [...leads] 
+    : leads.filter(l => String(l[currentFilterCategory]) === currentFilterValue);
+    
+  if (currentSearchQuery) {
+    workingLeads = workingLeads.filter(l => {
+      const name = String(l.full_name || '').toLowerCase();
+      const company = String(l.company_name || '').toLowerCase();
+      const designation = String(l.designation || '').toLowerCase();
+      
+      return name.includes(currentSearchQuery) || 
+             company.includes(currentSearchQuery) || 
+             designation.includes(currentSearchQuery);
+    });
+  }
+  
+  if (currentSortToken === 'name-asc') {
+    workingLeads.sort((a, b) => String(a.full_name || '').localeCompare(String(b.full_name || '')));
+  } else if (currentSortToken === 'name-desc') {
+    workingLeads.sort((a, b) => String(b.full_name || '').localeCompare(String(a.full_name || '')));
+  } else if (currentSortToken === 'score-asc') {
+    workingLeads.sort((a, b) => (parseInt(a.score) || 0) - (parseInt(b.score) || 0));
+  } else if (currentSortToken === 'score-desc') {
+    workingLeads.sort((a, b) => (parseInt(b.score) || 0) - (parseInt(a.score) || 0));
+  }
+  
+  filteredLeads = workingLeads;
+  renderLeadsList();
+  
+  const panel = document.getElementById('assistant-panel');
+  if (filteredLeads.length === 0) {
+    panel.innerHTML = `<div class="empty-state"><div><i class="fi fi-sr-info"></i></div><p>No matches found for search or filters.</p></div>`;
+    selectedIndex = null;
+  }
+}
 
 function sanitizeTextForHTML(text) {
   if (text == null) return '';
@@ -209,8 +226,8 @@ function htmlEncode(text) {
 async function loadLeads() {
   const res = await fetch('/api/leads');
   leads = await res.json();
-  renderLeadsList();
-  
+  syncSidebarUI();
+  executeSalesFilter(currentFilterValue);
   const params = new URLSearchParams(window.location.search);
   const leadIndex = params.get('lead');
   if (leadIndex !== null) {
@@ -220,11 +237,15 @@ async function loadLeads() {
 
 function renderLeadsList() {
   const container = document.getElementById('leads-container');
-  container.innerHTML = leads.map((lead, i) => {
-    const fullName = sanitizeTextForHTML(lead.full_name);
-    const designation = sanitizeTextForHTML(lead.designation);
-    const companyName = sanitizeTextForHTML(lead.company_name);
-    const status = sanitizeTextForHTML(lead.status || 'Unknown');
+  if (!filteredLeads.length) {
+    container.innerHTML = '<div class="empty-state"><p>No leads match this filter.</p></div>';
+    return;
+  }
+  container.innerHTML = filteredLeads.map((lead, i) => {
+    const fullName = window.safeHTML(lead.full_name);
+    const designation = window.safeHTML(lead.designation);
+    const companyName = window.safeHTML(lead.company_name);
+    const status = window.safeHTML(lead.status || 'Unknown');
     const badgeClass = lead.status ? lead.status.toLowerCase() : 'cold';
     return `
       <div class="lead-item ${selectedIndex === i ? 'active' : ''}" onclick="selectLead(${i})">
@@ -281,7 +302,7 @@ async function selectLead(index) {
 
     <div class="summary-section">
       <div class="summary-title">Meeting Summary Generator</div>
-      <textarea class="summary-textarea" id="meeting-notes" placeholder="Paste your meeting notes here — what was discussed, what the lead said, any objections, next steps mentioned..."></textarea>
+      <textarea class="summary-textarea" id="meeting-notes" placeholder="Paste your meeting notes here..."></textarea>
       <button class="generate-btn" id="summary-btn" onclick="generateSummary(${index})">Generate Summary</button>
       <div class="summary-output" id="summary-output"></div>
     </div>
@@ -318,70 +339,11 @@ async function generateSummary(index) {
   btn.textContent = 'Generate Summary';
 }
 
-// Chatbot functions
-function toggleChat() {
-  const win = document.getElementById('chat-window');
-  win.classList.toggle('open');
-}
+document.addEventListener('DOMContentLoaded', () => {
+  loadLeads();
+  restoreSidebarState();
+});
 
-async function sendChat() {
-  const input = document.getElementById('chat-input');
-  const message = input.value.trim();
-  if (!message) return;
-  input.value = '';
-  document.getElementById('suggestions').style.display = 'none';
-  appendMessage(message, 'user');
-  appendMessage('Thinking...', 'agent typing', 'typing-msg');
-
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message })
-  });
-  const data = await res.json();
-
-  document.getElementById('typing-msg')?.remove();
-  appendMessage(data.response, 'agent');
-}
-
-function sendSuggestion(el) {
-  document.getElementById('chat-input').value = el.textContent;
-  sendChat();
-}
-
-function appendMessage(text, type, id='') {
-  const messages = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.className = `chat-msg ${type}`;
-  if (id) div.id = id;
-  div.textContent = text;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
-
-async function resetChat() {
-  await fetch('/api/chat/reset', { method: 'POST' });
-  const messages = document.getElementById('chat-messages');
-  messages.innerHTML = '<div class="chat-msg agent">Chat reset. Ask me anything about your leads!</div>';
-  document.getElementById('suggestions').style.display = 'flex';
-}
-
-loadLeads();
-restoreSidebarState();
-
-function toggleSidebar() {
-  const hidden = document.body.classList.toggle('sidebar-hidden');
-  document.getElementById('sidebar-toggle').textContent = hidden ? 'Show Sidebar' : 'Hide Sidebar';
-  localStorage.setItem('sidebarHidden', hidden ? 'true' : 'false');
-}
-
-function restoreSidebarState() {
-  const hidden = localStorage.getItem('sidebarHidden') === 'true';
-  if (hidden) {
-    document.body.classList.add('sidebar-hidden');
-  }
-  document.getElementById('sidebar-toggle').textContent = hidden ? 'Show Sidebar' : 'Hide Sidebar';
-}
 </script>
 </body>
 </html>

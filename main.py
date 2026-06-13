@@ -1,6 +1,6 @@
 # main.py
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
 from lead_qualifier import qualify_lead
 from data_loader import load_csv
@@ -16,6 +16,9 @@ load_dotenv()
 
 app = FastAPI()
 llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=os.getenv("GROQ_API_KEY"))
+
+# NOTE: chat_history is a single global session — not suitable for multi-user deployment
+chat_history = []
 
 def json_response(content):
     return JSONResponse(content=content, media_type="application/json; charset=utf-8")
@@ -53,12 +56,10 @@ def add_lead(lead: NewLead):
     qualified["_record_id"] = created["id"]
     return json_response(qualified)
 
-
 @app.post("/api/leads/upload-csv")
 async def upload_csv(file: UploadFile = File(...)):
     existing_leads = get_all_leads()
     temp_path = None
-
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as temp_file:
             temp_file.write(await file.read())
@@ -71,14 +72,11 @@ async def upload_csv(file: UploadFile = File(...)):
         for record in records:
             qualified = qualify_lead(record)
             duplicate = next(
-                (
-                    lead for lead in existing_leads
-                    if lead["full_name"] == qualified["full_name"]
-                    and lead["company_name"] == qualified["company_name"]
-                ),
+                (lead for lead in existing_leads
+                 if lead["full_name"] == qualified["full_name"]
+                 and lead["company_name"] == qualified["company_name"]),
                 None
             )
-
             if duplicate is not None:
                 qualified["lead_id"] = duplicate["lead_id"]
                 update_lead(duplicate["_record_id"], qualified)
@@ -91,23 +89,11 @@ async def upload_csv(file: UploadFile = File(...)):
                 existing_leads.append(qualified)
                 added_count += 1
 
-        return json_response({
-            "message": "Upload complete",
-            "added": added_count,
-            "replaced": replaced_count
-        })
+        return json_response({ "message": "Upload complete", "added": added_count, "replaced": replaced_count})
     except ValueError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={"error": str(exc)},
-            media_type="application/json; charset=utf-8"
-        )
+        return JSONResponse( status_code=400, content={"error": str(exc)}, media_type="application/json; charset=utf-8" )
     except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Unable to process CSV upload. " + str(exc)},
-            media_type="application/json; charset=utf-8"
-        )
+        return JSONResponse( status_code=500, content={"error": "Unable to process CSV upload. " + str(exc)}, media_type="application/json; charset=utf-8" )
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
@@ -128,6 +114,7 @@ def update_lead_endpoint(record_id: str, lead: NewLead):
     qualified["_record_id"] = record_id
     return json_response(qualified)
 
+# TODO: replace index-based lookup with record_id for stability after deletions
 @app.get("/api/sales-assistant/{index}")
 def get_sales_assistant(index: int):
     leads = get_all_leads()
@@ -176,15 +163,12 @@ NEXT STEPS: (2 action items)"""
         HumanMessage(content=prompt)
     ]).content
 
-    return {"summary": response}
-
-chat_history = []
+    return json_response({"summary": response})
 
 @app.post("/api/chat")
 def chat_with_leads(request: dict):
     global chat_history
     leads = get_all_leads()
-    
     user_message = request.get("message", "")
     
     leads_context = "\n".join([
@@ -212,7 +196,6 @@ Always be concise, actionable and specific to the leads in the database."""))
     chat_history.append(HumanMessage(content=user_message))
     response = llm.invoke(chat_history)
     chat_history.append(AIMessage(content=response.content))
-    
     return json_response({"response": response.content})
 
 @app.post("/api/chat/reset")
@@ -223,12 +206,12 @@ def reset_chat():
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
-    with open("index.html", "r") as f:
+    with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/sales-assistant", response_class=HTMLResponse)
 def sales_assistant_page():
-    with open("sales_assistant.html", "r") as f:
+    with open("sales_assistant.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/sales-assistant/", response_class=HTMLResponse)
@@ -238,3 +221,16 @@ def sales_assistant_page_slash():
 @app.get("/sales_assistant.html", response_class=HTMLResponse)
 def sales_assistant_file():
     return sales_assistant_page()
+
+@app.get("/analytics", response_class=HTMLResponse)
+def analytics_page():
+    with open("analytics.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/analytics/", response_class=HTMLResponse)
+def analytics_page_slash():
+    return analytics_page()
+
+@app.get("/components.js")
+async def get_components():
+    return FileResponse("components.js", media_type="application/javascript")
