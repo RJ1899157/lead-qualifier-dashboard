@@ -20,13 +20,93 @@
 
   .analytics-panel { flex: 1; padding: 24px 28px; overflow-y: auto; background: #0f172a; }
   .analytics-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 28px; }
-  .analytics-tile { background: #161e2e; border: 1px solid #334155; border-radius: 18px; padding: 22px 20px; color: #e2e8f0; }
+  .analytics-tile {
+  background: linear-gradient(
+      145deg,
+      rgba(22,30,46,.98),
+      rgba(15,23,42,.98)
+  );
+
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 20px;
+
+  padding: 22px 20px;
+
+  transition: all .25s ease;
+
+  box-shadow:
+      0 8px 20px rgba(0,0,0,.18);
+}
+
+.analytics-tile:hover {
+  transform: translateY(-4px);
+  border-color: rgba(99,102,241,.35);
+}
   .analytics-tile-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
-  .analytics-tile-value { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; color: #fff; }
+  .analytics-tile-value {
+  font-size: 34px;
+  font-weight: 800;
+
+  letter-spacing: -0.04em;
+
+  background: linear-gradient(
+      90deg,
+      #ffffff,
+      #c7d2fe
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
   .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-  .analytics-card { background: #161e2e; border: 1px solid #334155; border-radius: 20px; padding: 22px; color: #e2e8f0; display: flex; flex-direction: column; box-shadow: 0 18px 45px rgba(0,0,0,0.18); }
-  .analytics-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 16px; color: #f8fafc; }
-  .analytics-card canvas { width: 100% !important; height: 280px !important; }
+  .analytics-card {
+  background: linear-gradient(
+      145deg,
+      rgba(22,30,46,0.98),
+      rgba(15,23,42,0.98)
+  );
+
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 22px;
+  padding: 22px;
+
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+
+  box-shadow:
+      0 10px 25px rgba(0,0,0,.25),
+      0 1px 0 rgba(255,255,255,.03) inset;
+
+  transition:
+      transform .25s ease,
+      box-shadow .25s ease,
+      border-color .25s ease;
+}
+
+.analytics-card:hover {
+  transform: translateY(-5px);
+
+  border-color: rgba(99,102,241,.35);
+
+  box-shadow:
+      0 20px 50px rgba(0,0,0,.35),
+      0 0 30px rgba(99,102,241,.12);
+}
+  .analytics-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+
+  letter-spacing: .2px;
+
+  margin-bottom: 18px;
+
+  color: #f8fafc;
+}
+.analytics-card canvas {
+  width: 100% !important;
+  height: 320px !important;
+}
 
   .loading { text-align: center; padding: 60px; color: #475569; font-size: 15px; }
   .spinner { width: 32px; height: 32px; border: 3px solid #334155; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
@@ -118,10 +198,36 @@ function chartOptions() {
   return {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+
     scales: {
-      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } },
-      y: { ticks: { color: '#cbd5e1' }, grid: { color: '#334155' } }
+      x: {
+        ticks: {
+          color: '#cbd5e1'
+        },
+        grid: {
+          color: 'rgba(255,255,255,.05)',
+          drawBorder: false
+        }
+      },
+
+      y: {
+        beginAtZero: true,
+
+        ticks: {
+          color: '#cbd5e1'
+        },
+
+        grid: {
+          color: 'rgba(255,255,255,.05)',
+          drawBorder: false
+        }
+      }
     }
   };
 }
@@ -131,6 +237,21 @@ let analyticsCharts = {};
 function resetAnalyticsCharts() {
   Object.values(analyticsCharts).forEach(chart => chart?.destroy());
   analyticsCharts = {};
+}
+
+function createGradient(ctx) {
+  const gradient = ctx.createLinearGradient(
+    0,
+    0,
+    0,
+    300
+  );
+
+  gradient.addColorStop(0, '#8b5cf6');
+  gradient.addColorStop(.5, '#6366f1');
+  gradient.addColorStop(1, '#4338ca');
+
+  return gradient;
 }
 
 function renderAnalytics(leads) {
@@ -170,35 +291,81 @@ function renderAnalytics(leads) {
   resetAnalyticsCharts();
 
   analyticsCharts.status = new Chart(document.getElementById('status-chart'), {
-    type: 'pie',
-    data: {
-      labels: Object.keys(statusCounts),
-      datasets: [{ data: Object.values(statusCounts), backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'], borderColor: '#0f172a', borderWidth: 1 }]
-    },
-    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } }
+    type: 'doughnut',
+
+data: {
+  labels: Object.keys(statusCounts),
+
+  datasets: [{
+    data: Object.values(statusCounts),
+
+    backgroundColor: [
+      '#ef4444',
+      '#f97316',
+      '#6366f1'
+    ],
+
+    borderColor: '#000000',
+    borderWidth: 3,
+
+    hoverOffset: 22
+  }]
+},
+
+options: {
+  responsive: true,
+
+  cutout: '50%',
+
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: {
+        color: '#cbd5e1',
+        usePointStyle: true
+      }
+    }
+  }
+}
   });
 
   analyticsCharts.industry = new Chart(document.getElementById('industry-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(industryCounts), datasets: [{ label: 'Leads', data: Object.values(industryCounts), backgroundColor: '#6366f1' }] },
+    data: { labels: Object.keys(industryCounts), datasets: [{ label: 'Leads', data: Object.values(industryCounts), backgroundColor: createGradient(
+  document
+    .getElementById('industry-chart')
+    .getContext('2d')
+), borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 
   analyticsCharts.country = new Chart(document.getElementById('country-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(countryCounts), datasets: [{ label: 'Leads', data: Object.values(countryCounts), backgroundColor: '#6366f1' }] },
+    data: { labels: Object.keys(countryCounts), datasets: [{ label: 'Leads', data: Object.values(countryCounts), backgroundColor: createGradient(
+  document
+    .getElementById('industry-chart')
+    .getContext('2d')
+),borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 
   analyticsCharts.score = new Chart(document.getElementById('score-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(scoreCounts), datasets: [{ label: 'Leads', data: Object.values(scoreCounts), backgroundColor: '#6366f1' }] },
+    data: { labels: Object.keys(scoreCounts), datasets: [{ label: 'Leads', data: Object.values(scoreCounts), backgroundColor: createGradient(
+  document
+    .getElementById('industry-chart')
+    .getContext('2d')
+),borderRadius: 12,borderSkipped: false }] },
     options: chartOptions()
   });
 
   analyticsCharts.engagement = new Chart(document.getElementById('engagement-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(engagementCounts), datasets: [{ label: 'Leads', data: Object.values(engagementCounts), backgroundColor: '#6366f1' }] },
+    data: { labels: Object.keys(engagementCounts), datasets: [{ label: 'Leads', data: Object.values(engagementCounts), backgroundColor: createGradient(
+  document
+    .getElementById('industry-chart')
+    .getContext('2d')
+),borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 
@@ -206,7 +373,11 @@ function renderAnalytics(leads) {
     type: 'bar',
     data: {
       labels: priorityData.map(i => i.label),
-      datasets: [{ label: 'Priority Rank', data: priorityData.map(i => i.value), backgroundColor: '#6366f1' }]
+      datasets: [{ label: 'Priority Rank', data: priorityData.map(i => i.value), backgroundColor: createGradient(
+  document
+    .getElementById('industry-chart')
+    .getContext('2d')
+), borderRadius: 12, borderSkipped: false }]
     },
     options: {
       ...chartOptions(),
@@ -220,7 +391,11 @@ function renderAnalytics(leads) {
 
   analyticsCharts.companySize = new Chart(document.getElementById('size-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(companySizeCounts), datasets: [{ label: 'Leads', data: Object.values(companySizeCounts), backgroundColor: '#6366f1' }] },
+    data: { labels: Object.keys(companySizeCounts), datasets: [{ label: 'Leads', data: Object.values(companySizeCounts), backgroundColor: createGradient(
+  document
+    .getElementById('industry-chart')
+    .getContext('2d')
+), borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 }
