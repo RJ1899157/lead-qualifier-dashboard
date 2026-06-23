@@ -173,10 +173,24 @@ def chat_with_leads(request: dict):
     user_message = request.get("message", "")
 
     leads_context = "\n".join([
-        f"- {l['full_name']} | {l['designation']} at {l['company_name']} | {l['industry']} | {l['country']} | Score: {l.get('score', 'N/A')} | Status: {l.get('status', 'N/A')} | Engagement: {l['engagement']} | Reason: {l.get('score_explanation', '')} | Action: {l.get('recommended_action', '')}"
-        for l in leads
-    ])
-
+    f"""
+    Name: {l.get('full_name','')}
+    Designation: {l.get('designation','')}
+    Company: {l.get('company_name','')}
+    Industry: {l.get('industry','')}
+    Country: {l.get('country','')}
+    Phone: {l.get('phone_number','')}
+    Email: {l.get('work_email','')}
+    LinkedIn: {l.get('linkedin_profile','')}
+    Website: {l.get('website','')}
+    Company Size: {l.get('company_size','')}
+    Score: {l.get('score','')}
+    Status: {l.get('status','')}
+    Engagement: {l.get('engagement','')}
+    Recommended Action: {l.get('recommended_action','')}
+    """
+    for l in leads
+])
     system_prompt = SystemMessage(content=f"""
 You are an AI sales assistant with full knowledge of the current lead database.
 
