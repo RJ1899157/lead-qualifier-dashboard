@@ -313,19 +313,20 @@ data: {
 },
 
 options: {
-  responsive: true,
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 1,
 
-  cutout: '50%',
+    cutout: '42%',
 
-  plugins: {
-    legend: {
-      position: 'bottom',
-      labels: {
-        color: '#cbd5e1',
-        usePointStyle: true
-      }
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                color: '#cbd5e1'
+            }
+        }
     }
-  }
 }
   });
 

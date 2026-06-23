@@ -168,17 +168,20 @@ NEXT STEPS: (2 action items)"""
 @app.post("/api/chat")
 def chat_with_leads(request: dict):
     global chat_history
+
     leads = get_all_leads()
     user_message = request.get("message", "")
-    
+
     leads_context = "\n".join([
         f"- {l['full_name']} | {l['designation']} at {l['company_name']} | {l['industry']} | {l['country']} | Score: {l.get('score', 'N/A')} | Status: {l.get('status', 'N/A')} | Engagement: {l['engagement']} | Reason: {l.get('score_explanation', '')} | Action: {l.get('recommended_action', '')}"
         for l in leads
     ])
-    
-    if not chat_history:
-        chat_history.append(SystemMessage(content=f"""You are an AI sales assistant with full knowledge of the current lead database. 
-Help the sales team by answering questions about leads, suggesting outreach strategies, drafting emails, and providing sales intelligence.
+
+    system_prompt = SystemMessage(content=f"""
+You are an AI sales assistant with full knowledge of the current lead database.
+
+Help the sales team by answering questions about leads, suggesting outreach strategies,
+drafting emails, and providing sales intelligence.
 
 Current Lead Database:
 {leads_context}
@@ -191,11 +194,17 @@ You can:
 - Answer any question about the leads
 - Provide sales strategy advice
 
-Always be concise, actionable and specific to the leads in the database."""))
-    
+Always be concise, actionable and specific to the leads in the database.
+""")
+
     chat_history.append(HumanMessage(content=user_message))
-    response = llm.invoke(chat_history)
+
+    messages = [system_prompt] + chat_history
+
+    response = llm.invoke(messages)
+
     chat_history.append(AIMessage(content=response.content))
+
     return json_response({"response": response.content})
 
 @app.post("/api/chat/reset")
@@ -234,3 +243,4 @@ def analytics_page_slash():
 @app.get("/components.js")
 async def get_components():
     return FileResponse("components.js", media_type="application/javascript")
+
