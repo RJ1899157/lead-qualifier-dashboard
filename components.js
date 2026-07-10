@@ -7,6 +7,15 @@ style.textContent = `
   app-sidebar { display: block; width: 240px; height: 100vh; flex-shrink: 0; background: #1e293b; border-right: 1px solid #334155; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
   .sidebar { width: 240px; height: 100%; padding: 24px 16px; display: flex; flex-direction: column; gap: 8px; }
 
+  .sort-wrap { position: relative; flex-shrink: 0; }
+  .sort-icon-btn {width: 36px; height: 36px; background: transparent; border: 0; border-radius: 8px; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.15s ease;}
+  .sort-icon-btn:hover, .sort-icon-btn.active { border-color: #6366f1; color: #6366f1; }
+  .sort-menu {position: absolute; top: calc(100% + 6px); right: 0; z-index: 50; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 6px; display: none; flex-direction: column; gap: 2px; min-width: 150px; box-shadow: 0 10px 25px rgba(0,0,0,.35);}
+  .sort-menu.open { display: flex; }
+  .sort-menu-item {padding: 8px 10px; border-radius: 6px; font-size: 13px; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px;}
+  .sort-menu-item:hover { background: #334155; color: #f8fafc; }
+  .sort-menu-item.active { background: #6366f1; color: #fff; }
+
   .nav-item { padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 14px; color: #cbd5e1; text-decoration: none; font-weight: 600; letter-spacing: 0.02em; transition: all 0.15s ease; display: block; }
   .nav-item:hover:not(.active) { background: #334155; color: #f8fafc; transform: translateX(1px); }
   .nav-item.active { background: #6366f1; color: #fff; box-shadow: 0 10px 25px rgba(99,102,241,0.2); }
@@ -84,28 +93,34 @@ class AppSidebar extends HTMLElement {
       <!-- FILTER CATEGORY SELECTOR -->
       <div style="display: flex; flex-direction: column; gap: 8px; padding: 0 12px 8px;">
         <label for="sidebar-filter-category" style="font-size: 13px; color: #f8fafc; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Filter by:</label>
-        <select id="sidebar-filter-category" onchange="typeof changeFilterCategory==='function'&&changeFilterCategory(this.value)" style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none; cursor: pointer;">
-          <option value="status">Status</option>
-          <option value="industry">Industry</option>
-          <option value="country">Country</option>
-        </select>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          
+          <div style="position: relative; display: flex; align-items: center; flex: 1;">
+            <select id="sidebar-filter-category" onchange="typeof changeFilterCategory==='function'&&changeFilterCategory(this.value)" style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 32px 8px 10px; color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;">
+              <option value="status">Status</option>
+              <option value="industry">Industry</option>
+              <option value="country">Country</option>
+            </select>
+            <i class="fi fi-sr-angle-down" style="position: absolute; right: 12px; color: #cbd5e1; font-size: 12px; pointer-events: none;"></i>
+          </div>
+          <div class="sort-wrap">
+            <button id="sort-toggle-btn" class="sort-icon-btn" onclick="toggleSortMenu(event)" aria-label="Sort options" title="Sort">
+              <i class="fi fi-sr-sort-alt"></i>
+            </button>
+            <div id="sort-menu" class="sort-menu">
+              <div class="sort-menu-item" data-sort="name-asc" onclick="selectSort('name-asc')">Name <i class="fi fi-sr-arrow-down"></i></div>
+              <div class="sort-menu-item" data-sort="name-desc" onclick="selectSort('name-desc')">Name <i class="fi fi-sr-arrow-up"></i></div>
+              <div class="sort-menu-item" data-sort="score-asc" onclick="selectSort('score-asc')">Score <i class="fi fi-sr-arrow-down"></i></div>
+              <div class="sort-menu-item" data-sort="score-desc" onclick="selectSort('score-desc')">Score <i class="fi fi-sr-arrow-up"></i></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="sidebar-sub-options" style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px 12px;">
         </div>
 
-      <hr style="border: none; border-top: 1px solid #334155; margin: 4px 0 16px; padding: 0 4px;">
-
-      <div style="display: flex; flex-direction: column; gap: 8px; padding: 0 12px;">
-        <label for="sidebar-sort-select" style="font-size: 13px; color: #f8fafc; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Sort by:</label>
-        <select id="sidebar-sort-select" onchange="typeof handleSidebarSort==='function'&&handleSidebarSort(this.value)" style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #e2e8f0; font-size: 13px; font-family: inherit; outline: none; cursor: pointer;">
-          <option value="none" selected disabled>Select ordering...</option>
-          <option value="name-asc">Name (A-Z)</option>
-          <option value="name-desc">Name (Z-A)</option>
-          <option value="score-asc">Score (Low to High)</option>
-          <option value="score-desc">Score (High to Low)</option>
-        </select>
-      </div>
+      
     `;
     this.innerHTML = `
       <div class="sidebar">
@@ -281,3 +296,28 @@ window.handleSidebarSearch = function(query) {
     searchLeads(query);
   }
 };
+
+window.currentSort = 'none';
+
+window.toggleSortMenu = function(e) {
+  e.stopPropagation();
+  document.getElementById('sort-menu').classList.toggle('open');
+};
+
+window.selectSort = function(sortToken) {
+  window.currentSort = sortToken;
+  document.getElementById('sort-menu').classList.remove('open');
+  document.getElementById('sort-toggle-btn').classList.add('active');
+  document.querySelectorAll('.sort-menu-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.sort === sortToken);
+  });
+  if (typeof sortLeads === 'function') sortLeads(sortToken);
+};
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('sort-menu');
+  const btn = document.getElementById('sort-toggle-btn');
+  if (menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+    menu.classList.remove('open');
+  }
+});

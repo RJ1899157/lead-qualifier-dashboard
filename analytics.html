@@ -239,18 +239,14 @@ function resetAnalyticsCharts() {
   analyticsCharts = {};
 }
 
-function createGradient(ctx) {
-  const gradient = ctx.createLinearGradient(
-    0,
-    0,
-    0,
-    300
-  );
-
+function createGradient(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const height = canvas.height || 300;
+  const gradient = ctx.createLinearGradient(0, 0, 0, height);
   gradient.addColorStop(0, '#8b5cf6');
   gradient.addColorStop(.5, '#6366f1');
   gradient.addColorStop(1, '#4338ca');
-
   return gradient;
 }
 
@@ -287,6 +283,12 @@ function renderAnalytics(leads) {
   const scoreCounts = bucketScores(leads);
   const companySizeCounts = bucketCompanySize(leads);
   const priorityData = topPriorityLeads(leads);
+  const STATUS_COLORS = {
+  'Hot': '#ef4444',
+  'Warm': '#f59e0b',
+  'Cold': '#3b82f6'
+};
+const DEFAULT_STATUS_COLOR = '#94a3b8';
 
   resetAnalyticsCharts();
 
@@ -295,19 +297,13 @@ function renderAnalytics(leads) {
 
 data: {
   labels: Object.keys(statusCounts),
-
   datasets: [{
     data: Object.values(statusCounts),
-
-    backgroundColor: [
-      '#ef4444',
-      '#f97316',
-      '#6366f1'
-    ],
-
+    backgroundColor: Object.keys(statusCounts).map(
+        label => STATUS_COLORS[label] || DEFAULT_STATUS_COLOR
+      ),
     borderColor: '#000000',
     borderWidth: 3,
-
     hoverOffset: 22
   }]
 },
@@ -332,41 +328,25 @@ options: {
 
   analyticsCharts.industry = new Chart(document.getElementById('industry-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(industryCounts), datasets: [{ label: 'Leads', data: Object.values(industryCounts), backgroundColor: createGradient(
-  document
-    .getElementById('industry-chart')
-    .getContext('2d')
-), borderRadius: 12, borderSkipped: false }] },
+    data: { labels: Object.keys(industryCounts), datasets: [{ label: 'Leads', data: Object.values(industryCounts), backgroundColor: createGradient('industry-chart'), borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 
   analyticsCharts.country = new Chart(document.getElementById('country-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(countryCounts), datasets: [{ label: 'Leads', data: Object.values(countryCounts), backgroundColor: createGradient(
-  document
-    .getElementById('industry-chart')
-    .getContext('2d')
-),borderRadius: 12, borderSkipped: false }] },
+    data: { labels: Object.keys(countryCounts), datasets: [{ label: 'Leads', data: Object.values(countryCounts), backgroundColor: createGradient('country-chart'),borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 
   analyticsCharts.score = new Chart(document.getElementById('score-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(scoreCounts), datasets: [{ label: 'Leads', data: Object.values(scoreCounts), backgroundColor: createGradient(
-  document
-    .getElementById('industry-chart')
-    .getContext('2d')
-),borderRadius: 12,borderSkipped: false }] },
+    data: { labels: Object.keys(scoreCounts), datasets: [{ label: 'Leads', data: Object.values(scoreCounts), backgroundColor: createGradient('score-chart'),borderRadius: 12,borderSkipped: false }] },
     options: chartOptions()
   });
 
   analyticsCharts.engagement = new Chart(document.getElementById('engagement-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(engagementCounts), datasets: [{ label: 'Leads', data: Object.values(engagementCounts), backgroundColor: createGradient(
-  document
-    .getElementById('industry-chart')
-    .getContext('2d')
-),borderRadius: 12, borderSkipped: false }] },
+    data: { labels: Object.keys(engagementCounts), datasets: [{ label: 'Leads', data: Object.values(engagementCounts), backgroundColor: createGradient('engagement-chart'),borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 
@@ -374,11 +354,7 @@ options: {
     type: 'bar',
     data: {
       labels: priorityData.map(i => i.label),
-      datasets: [{ label: 'Priority Rank', data: priorityData.map(i => i.value), backgroundColor: createGradient(
-  document
-    .getElementById('industry-chart')
-    .getContext('2d')
-), borderRadius: 12, borderSkipped: false }]
+      datasets: [{ label: 'Priority Rank', data: priorityData.map(i => i.value), backgroundColor: createGradient('priority-chart'), borderRadius: 12, borderSkipped: false }]
     },
     options: {
       ...chartOptions(),
@@ -392,11 +368,7 @@ options: {
 
   analyticsCharts.companySize = new Chart(document.getElementById('size-chart'), {
     type: 'bar',
-    data: { labels: Object.keys(companySizeCounts), datasets: [{ label: 'Leads', data: Object.values(companySizeCounts), backgroundColor: createGradient(
-  document
-    .getElementById('industry-chart')
-    .getContext('2d')
-), borderRadius: 12, borderSkipped: false }] },
+    data: { labels: Object.keys(companySizeCounts), datasets: [{ label: 'Leads', data: Object.values(companySizeCounts), backgroundColor: createGradient('size-chart'), borderRadius: 12, borderSkipped: false }] },
     options: chartOptions()
   });
 }
